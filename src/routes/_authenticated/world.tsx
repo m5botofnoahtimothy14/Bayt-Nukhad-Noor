@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeOfDay } from "@/hooks/useTimeOfDay";
+import { useSeason } from "@/hooks/useSeason";
+import { useWeather } from "@/hooks/useWeather";
 import { Cat } from "@/components/world/Cat";
 import { AddMemoryDialog, ViewMemoryDialog, type Memory } from "@/components/world/memories";
 import { HouseScene } from "@/components/scenes/HouseScene";
@@ -10,18 +12,53 @@ import { ObservatoryScene } from "@/components/scenes/ObservatoryScene";
 import { LakeScene } from "@/components/scenes/LakeScene";
 import { ForestScene } from "@/components/scenes/ForestScene";
 import { MeadowScene } from "@/components/scenes/MeadowScene";
-import { Home, Flower2, Star, Waves, Trees, CloudRain, LogOut } from "lucide-react";
+import { BalconyScene } from "@/components/scenes/BalconyScene";
+import { KitchenScene } from "@/components/scenes/KitchenScene";
+import { DiningScene } from "@/components/scenes/DiningScene";
+import { BedroomScene } from "@/components/scenes/BedroomScene";
+import {
+  Home,
+  Flower2,
+  Star,
+  Waves,
+  Trees,
+  CloudRain,
+  Moon,
+  LogOut,
+  UtensilsCrossed,
+  Utensils,
+  BedDouble,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/world")({
-  head: () => ({ meta: [{ title: "Our Universe" }] }),
+  head: () => ({ meta: [{ title: "Bayt Nūkhad Noor" }] }),
   component: World,
 });
 
-type Loc = "house" | "garden" | "observatory" | "lake" | "forest" | "meadow";
+type Loc =
+  | "house"
+  | "kitchen"
+  | "dining"
+  | "bedroom"
+  | "garden"
+  | "observatory"
+  | "lake"
+  | "forest"
+  | "meadow"
+  | "balcony";
 
-const LOCATIONS: { id: Loc; name: string; icon: typeof Home; hint: string }[] = [
-  { id: "house", name: "The House", icon: Home, hint: "our warm cabin" },
+const LOCATIONS: {
+  id: Loc;
+  name: string;
+  icon: typeof Home;
+  hint: string;
+}[] = [
+  { id: "house", name: "Living Room", icon: Home, hint: "our warm home" },
+  { id: "kitchen", name: "Kitchen", icon: UtensilsCrossed, hint: "where we cook" },
+  { id: "dining", name: "Dining Room", icon: Utensils, hint: "shared meals" },
+  { id: "bedroom", name: "Bedroom", icon: BedDouble, hint: "our sanctuary" },
   { id: "garden", name: "Memory Garden", icon: Flower2, hint: "flowers of us" },
+  { id: "balcony", name: "Stargazing Balcony", icon: Moon, hint: "beneath the stars" },
   { id: "observatory", name: "Observatory", icon: Star, hint: "our sky" },
   { id: "lake", name: "Moon Lake", icon: Waves, hint: "paper boats" },
   { id: "forest", name: "Whispering Forest", icon: Trees, hint: "fireflies" },
@@ -32,6 +69,8 @@ function World() {
   const [loc, setLoc] = useState<Loc>("house");
   const [sceneKey, setSceneKey] = useState(0);
   const phase = useTimeOfDay();
+  const season = useSeason();
+  const weather = useWeather();
   const navigate = useNavigate();
 
   const [addOpen, setAddOpen] = useState<{
@@ -55,20 +94,33 @@ function World() {
 
   return (
     <div className="scene">
-      {/* Scene with key to force re-mount for animation */}
       <div key={sceneKey}>
         {loc === "house" && (
           <HouseScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
         )}
+        {loc === "kitchen" && (
+          <KitchenScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
+        )}
+        {loc === "dining" && (
+          <DiningScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
+        )}
+        {loc === "bedroom" && (
+          <BedroomScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
+        )}
         {loc === "garden" && (
           <GardenScene
             phase={phase}
+            season={season}
             onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
             onView={setViewing}
           />
         )}
+        {loc === "balcony" && (
+          <BalconyScene onAdd={(p) => setAddOpen({ kind: "memory", pos: p })} onView={setViewing} />
+        )}
         {loc === "observatory" && (
           <ObservatoryScene
+            season={season}
             onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
             onView={setViewing}
           />
@@ -76,26 +128,53 @@ function World() {
         {loc === "lake" && (
           <LakeScene
             phase={phase}
+            season={season}
             onAdd={(p) => setAddOpen({ kind: "letter", pos: p })}
             onView={setViewing}
           />
         )}
         {loc === "forest" && (
-          <ForestScene onAdd={(p) => setAddOpen({ kind: "memory", pos: p })} onView={setViewing} />
+          <ForestScene
+            season={season}
+            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
+            onView={setViewing}
+          />
         )}
         {loc === "meadow" && (
-          <MeadowScene onAdd={(p) => setAddOpen({ kind: "memory", pos: p })} onView={setViewing} />
+          <MeadowScene
+            season={season}
+            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
+            onView={setViewing}
+          />
         )}
       </div>
 
-      <Cat location={loc} />
+      <Cat location={loc} phase={phase} season={season} weather={weather.current} />
+
+      {/* Weather overlay */}
+      {weather.current !== "clear" && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20"
+          style={{
+            background:
+              weather.current === "fog" || weather.current === "mist"
+                ? `linear-gradient(180deg, oklch(0.7 0.02 200 / ${weather.intensity * 0.15}%), oklch(0.6 0.02 200 / ${weather.intensity * 0.1}%))`
+                : weather.current === "snow"
+                  ? `radial-gradient(ellipse at 50% 0%, oklch(0.9 0.02 240 / ${weather.intensity * 0.08}%), transparent 60%)`
+                  : `linear-gradient(180deg, oklch(0.2 0.04 260 / ${weather.intensity * 0.12}%), transparent 50%)`,
+            transition: "opacity 2s ease-out",
+          }}
+        />
+      )}
 
       {/* Location badge */}
       <div
         className="pointer-events-none absolute left-1/2 top-5 z-40 -translate-x-1/2 text-center"
         style={{ animation: "fade-up 0.6s ease-out both" }}
       >
-        <p className="text-[10px] uppercase tracking-[0.5em] text-primary/60 serif">{phase}</p>
+        <p className="text-[10px] uppercase tracking-[0.5em] text-primary/60 serif">
+          {phase} · {weather.current !== "clear" ? weather.current : season}
+        </p>
         <h2 className="serif mt-1 text-2xl italic text-foreground drop-shadow-lg">
           {currentLoc.name}
         </h2>
@@ -117,8 +196,10 @@ function World() {
         style={{ animation: "fade-up 0.8s ease-out 0.2s both" }}
       >
         <div
-          className="flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-1.5 shadow-2xl backdrop-blur-xl"
-          style={{ boxShadow: "0 8px 40px oklch(0 0 0 / 30%), inset 0 1px 0 oklch(1 0 0 / 5%)" }}
+          className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/30 p-1 shadow-2xl backdrop-blur-xl"
+          style={{
+            boxShadow: "0 8px 40px oklch(0 0 0 / 30%), inset 0 1px 0 oklch(1 0 0 / 5%)",
+          }}
         >
           {LOCATIONS.map((l) => {
             const Icon = l.icon;
@@ -128,14 +209,14 @@ function World() {
                 key={l.id}
                 onClick={() => switchScene(l.id)}
                 aria-label={l.name}
-                className={`group relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 ${
+                className={`group relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
                   active
                     ? "bg-primary text-primary-foreground shadow-lg scale-105"
                     : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                 }`}
                 style={active ? { boxShadow: "0 4px 20px oklch(0.72 0.14 15 / 30%)" } : {}}
               >
-                <Icon size={18} />
+                <Icon size={16} />
                 <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-xl bg-black/80 px-2.5 py-1 text-[10px] text-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm border border-white/10">
                   {l.name}
                 </span>

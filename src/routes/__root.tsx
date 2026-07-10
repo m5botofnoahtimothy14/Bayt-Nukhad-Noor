@@ -82,26 +82,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Our Universe — a shared home for two" },
+      { title: "Bayt Nūkhad Noor — a shared home for two" },
       {
         name: "description",
         content:
-          "A small living world for two people who are apart. A cabin, a garden, a lake, and a cat who is always waiting.",
+          "A living digital home shared between Noah and Khadija. A cabin, a garden, a balcony beneath the stars, and a cat who is always waiting.",
       },
       { name: "theme-color", content: "#2a1520" },
-      { property: "og:title", content: "Our Universe — a shared home for two" },
+      { property: "og:title", content: "Bayt Nūkhad Noor — a shared home for two" },
       {
         property: "og:description",
         content:
-          "A small living world for two people who are apart. A cabin, a garden, a lake, and a cat who is always waiting.",
+          "A living digital home shared between Noah and Khadija. A cabin, a garden, a balcony beneath the stars, and a cat who is always waiting.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Our Universe — a shared home for two" },
+      { name: "twitter:title", content: "Bayt Nūkhad Noor — a shared home for two" },
       {
         name: "twitter:description",
         content:
-          "A small living world for two people who are apart. A cabin, a garden, a lake, and a cat who is always waiting.",
+          "A living digital home shared between Noah and Khadija. A cabin, a garden, a balcony beneath the stars, and a cat who is always waiting.",
       },
     ],
     links: [
