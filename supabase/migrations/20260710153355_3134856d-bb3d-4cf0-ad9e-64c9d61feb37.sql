@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "authed update cat" ON public.cat_state;
+CREATE POLICY "authed update cat" ON public.cat_state FOR UPDATE TO authenticated USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL);
