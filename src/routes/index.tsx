@@ -182,124 +182,128 @@ function Portal() {
 
       {/* ===== DOORS ===== */}
       {(phase === "waiting" || phase === "opening" || phase === "entered") && (
-        <div
-          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-          onClick={openDoors}
-          style={{
-            perspective: "1400px",
-            width: "min(440px, 78vw)",
-            height: "min(520px, 68vh)",
-            animation: "doors-appear 1.8s ease-out both",
-          }}
-        >
-          {/* Door frame */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
           <div
-            className="absolute inset-0 rounded-t-3xl"
+            className="relative cursor-pointer pointer-events-auto"
+            onClick={openDoors}
             style={{
-              background: "oklch(0.10 0.03 20)",
-              boxShadow:
-                "inset 0 0 40px oklch(0 0 0 / 60%), 0 0 100px oklch(0.72 0.14 15 / 20%)",
-              border: "3px solid oklch(0.22 0.05 30)",
+              perspective: "1400px",
+              width: "min(440px, 78vw)",
+              height: "min(520px, 68vh)",
+              animation: "doors-fade 1.8s ease-out both",
             }}
-          />
-          <div
-            className="absolute -top-1 left-1/2 -translate-x-1/2 w-[110%] h-16 pointer-events-none"
-            style={{
-              background: "linear-gradient(180deg, oklch(0.20 0.05 30), oklch(0.10 0.03 20))",
-              borderRadius: "50% 50% 0 0",
-              border: "3px solid oklch(0.22 0.05 30)",
-              borderBottom: "none",
-            }}
-          />
-
-          {(["left", "right"] as const).map((side) => (
+          >
+            {/* Door frame */}
             <div
-              key={side}
-              className={`absolute ${side === "left" ? "left-[3px]" : "right-[3px]"} top-[3px] bottom-0 w-1/2 overflow-hidden ${
-                side === "left" ? "origin-left" : "origin-right"
-              }`}
+              className="absolute inset-0 rounded-t-3xl"
               style={{
-                borderRadius: side === "left" ? "12px 0 0 0" : "0 12px 0 0",
-                transition: "transform 2.8s cubic-bezier(0.22, 1, 0.36, 1)",
-                transform:
-                  phase === "opening" || phase === "entered"
-                    ? `perspective(800px) rotateY(${side === "left" ? -78 : 78}deg)`
-                    : "perspective(800px) rotateY(0deg)",
+                background: "oklch(0.10 0.04 265)",
+                boxShadow:
+                  "inset 0 0 40px oklch(0 0 0 / 60%), 0 0 120px oklch(0.42 0.17 25 / 30%), 0 0 200px oklch(0.52 0.16 150 / 20%)",
+                border: "3px solid oklch(0.24 0.06 265)",
               }}
-            >
+            />
+            <div
+              className="absolute -top-1 left-1/2 -translate-x-1/2 w-[110%] h-16 pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, oklch(0.22 0.06 265), oklch(0.10 0.04 265))",
+                borderRadius: "50% 50% 0 0",
+                border: "3px solid oklch(0.24 0.06 265)",
+                borderBottom: "none",
+              }}
+            />
+
+            {(["left", "right"] as const).map((side) => (
               <div
-                className="absolute inset-0"
+                key={side}
+                className={`absolute ${side === "left" ? "left-[3px]" : "right-[3px]"} top-[3px] bottom-0 w-1/2 overflow-hidden ${
+                  side === "left" ? "origin-left" : "origin-right"
+                }`}
                 style={{
-                  background:
-                    "linear-gradient(180deg, oklch(0.30 0.06 25), oklch(0.22 0.05 20) 60%, oklch(0.26 0.06 25))",
+                  borderRadius: side === "left" ? "12px 0 0 0" : "0 12px 0 0",
+                  transition: "transform 2.8s cubic-bezier(0.22, 1, 0.36, 1)",
+                  transform:
+                    phase === "opening" || phase === "entered"
+                      ? `perspective(800px) rotateY(${side === "left" ? -82 : 82}deg)`
+                      : "perspective(800px) rotateY(0deg)",
                 }}
-              />
-              {Array.from({ length: 8 }).map((_, i) => (
+              >
                 <div
-                  key={i}
-                  className="absolute pointer-events-none"
+                  className="absolute inset-0"
                   style={{
-                    left: `${10 + i * 12}%`,
-                    top: 0,
-                    bottom: 0,
-                    width: 1,
                     background:
-                      "linear-gradient(180deg, transparent, oklch(0.34 0.06 25 / 45%), transparent)",
+                      "linear-gradient(180deg, oklch(0.32 0.10 150), oklch(0.22 0.08 155) 55%, oklch(0.28 0.10 150))",
                   }}
                 />
-              ))}
-              <div
-                className="absolute inset-x-6 top-12 bottom-16 rounded-lg border border-white/[0.06]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, oklch(0.22 0.04 25 / 60%), oklch(0.16 0.03 20 / 80%))",
-                }}
-              />
-              <div className="absolute top-[35%] left-1/2 -translate-x-1/2 opacity-40">
-                {side === "left" ? (
-                  <svg width="50" height="50" viewBox="0 0 50 50">
-                    <path
-                      d="M30 5 A20 20 0 1 0 30 45 A14 14 0 1 1 30 5"
-                      fill="oklch(0.80 0.10 55)"
-                    />
-                    <circle cx="38" cy="12" r="2" fill="oklch(0.85 0.10 55)" />
-                  </svg>
-                ) : (
-                  <svg width="40" height="50" viewBox="0 0 40 50">
-                    <path
-                      d="M20 2 L38 25 L20 48 L2 25 Z"
-                      fill="none"
-                      stroke="oklch(0.75 0.14 15)"
-                      strokeWidth="1.5"
-                    />
-                    <path d="M20 10 L30 25 L20 40 L10 25 Z" fill="oklch(0.72 0.14 15 / 40%)" />
-                  </svg>
-                )}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${10 + i * 12}%`,
+                      top: 0,
+                      bottom: 0,
+                      width: 1,
+                      background:
+                        "linear-gradient(180deg, transparent, oklch(0.42 0.10 150 / 55%), transparent)",
+                    }}
+                  />
+                ))}
+                <div
+                  className="absolute inset-x-6 top-12 bottom-16 rounded-lg border border-white/[0.08]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.28 0.12 150 / 55%), oklch(0.18 0.08 155 / 80%))",
+                    boxShadow: "inset 0 0 30px oklch(0.42 0.17 25 / 20%)",
+                  }}
+                />
+                <div className="absolute top-[35%] left-1/2 -translate-x-1/2 opacity-50">
+                  {side === "left" ? (
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                      <path
+                        d="M30 5 A20 20 0 1 0 30 45 A14 14 0 1 1 30 5"
+                        fill="oklch(0.85 0.10 90)"
+                      />
+                      <circle cx="38" cy="12" r="2" fill="oklch(0.90 0.10 90)" />
+                    </svg>
+                  ) : (
+                    <svg width="40" height="50" viewBox="0 0 40 50">
+                      <path
+                        d="M20 2 L38 25 L20 48 L2 25 Z"
+                        fill="none"
+                        stroke="oklch(0.55 0.20 25)"
+                        strokeWidth="1.5"
+                      />
+                      <path d="M20 10 L30 25 L20 40 L10 25 Z" fill="oklch(0.42 0.17 25 / 55%)" />
+                    </svg>
+                  )}
+                </div>
+                <div
+                  className={`absolute ${side === "left" ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 w-3 h-14 rounded-full`}
+                  style={{
+                    background:
+                      "linear-gradient(180deg, oklch(0.78 0.10 90), oklch(0.55 0.08 85), oklch(0.78 0.10 90))",
+                    boxShadow:
+                      "0 0 12px oklch(0 0 0 / 50%), inset 0 1px 0 oklch(1 0 0 / 30%)",
+                  }}
+                />
               </div>
-              <div
-                className={`absolute ${side === "left" ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 w-3 h-14 rounded-full`}
-                style={{
-                  background:
-                    "linear-gradient(180deg, oklch(0.70 0.09 55), oklch(0.52 0.06 50), oklch(0.70 0.09 55))",
-                  boxShadow:
-                    "0 0 10px oklch(0 0 0 / 40%), inset 0 1px 0 oklch(1 0 0 / 25%)",
-                }}
-              />
-            </div>
-          ))}
+            ))}
 
-          <div
-            className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-1 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(180deg, transparent, oklch(0.85 0.14 40 / 60%), transparent)",
-              opacity: phase === "opening" ? 0 : 1,
-              filter: "blur(1px)",
-              transition: "opacity 1.5s ease-out",
-            }}
-          />
+            <div
+              className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-1 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent, oklch(0.75 0.18 150 / 70%), oklch(0.55 0.20 25 / 60%), transparent)",
+                opacity: phase === "opening" ? 0 : 1,
+                filter: "blur(1px)",
+                transition: "opacity 1.5s ease-out",
+              }}
+            />
+          </div>
         </div>
       )}
+
 
       {/* Waiting caption */}
       {phase === "waiting" && checked && (
