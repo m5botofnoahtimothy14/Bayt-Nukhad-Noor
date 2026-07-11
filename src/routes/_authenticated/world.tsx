@@ -5,6 +5,8 @@ import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
 import { Cat } from "@/components/world/Cat";
+import { SceneCanvas } from "@/components/world/SceneCanvas";
+
 import { AddMemoryDialog, ViewMemoryDialog, type Memory } from "@/components/world/memories";
 import { HouseScene } from "@/components/scenes/HouseScene";
 import { GardenScene } from "@/components/scenes/GardenScene";
@@ -95,7 +97,13 @@ function World() {
   return (
     <div className="scene">
       <div key={sceneKey}>
+        {/* Real-time 3D ambience layer (scaffolding only; no GLTF yet) */}
+        <SceneCanvas phase={phase} weather={weather.current}>
+          {/* placeholder */}
+        </SceneCanvas>
+
         {loc === "house" && (
+
           <HouseScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
         )}
         {loc === "kitchen" && (

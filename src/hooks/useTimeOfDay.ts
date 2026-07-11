@@ -22,8 +22,9 @@ function phaseFor(d: Date): TimePhase {
 }
 
 export const SKY: Record<TimePhase, string> = {
-  dawn:  "linear-gradient(180deg, oklch(0.7 0.09 30) 0%, oklch(0.75 0.11 50) 50%, oklch(0.55 0.08 70) 100%)",
-  day:   "linear-gradient(180deg, oklch(0.78 0.09 230) 0%, oklch(0.85 0.06 220) 60%, oklch(0.9 0.05 90) 100%)",
-  dusk:  "linear-gradient(180deg, oklch(0.4 0.08 300) 0%, oklch(0.55 0.15 30) 55%, oklch(0.6 0.18 60) 100%)",
-  night: "linear-gradient(180deg, oklch(0.15 0.04 260) 0%, oklch(0.2 0.06 270) 60%, oklch(0.3 0.06 260) 100%)",
+  dawn: "linear-gradient(180deg, oklch(0.7 0.09 30) 0%, oklch(0.75 0.11 50) 50%, oklch(0.55 0.08 70) 100%)",
+  day: "linear-gradient(180deg, oklch(0.78 0.09 230) 0%, oklch(0.85 0.06 220) 60%, oklch(0.9 0.05 90) 100%)",
+  dusk: "linear-gradient(180deg, oklch(0.4 0.08 300) 0%, oklch(0.55 0.15 30) 55%, oklch(0.6 0.18 60) 100%)",
+  night:
+    "linear-gradient(180deg, oklch(0.15 0.04 260) 0%, oklch(0.2 0.06 270) 60%, oklch(0.3 0.06 260) 100%)",
 };
