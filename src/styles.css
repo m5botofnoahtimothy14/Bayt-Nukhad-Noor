@@ -44,35 +44,35 @@
 :root {
   --radius: 0.75rem;
 
-  /* === NEW PALETTE: Soft Pink · Dark Red · Verdant Green · Peach · Rose === */
-  --background: oklch(0.18 0.03 350);
-  --foreground: oklch(0.95 0.02 20);
-  --card: oklch(0.24 0.04 350);
-  --card-foreground: oklch(0.95 0.02 20);
-  --popover: oklch(0.22 0.04 350);
-  --popover-foreground: oklch(0.95 0.02 20);
-  --primary: oklch(0.72 0.14 15);
-  --primary-foreground: oklch(0.98 0.01 20);
-  --secondary: oklch(0.35 0.06 355);
-  --secondary-foreground: oklch(0.95 0.02 20);
-  --muted: oklch(0.3 0.03 355);
-  --muted-foreground: oklch(0.72 0.04 20);
-  --accent: oklch(0.68 0.16 30);
-  --accent-foreground: oklch(0.98 0.01 20);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.35 0.05 350 / 50%);
-  --input: oklch(0.28 0.04 355);
-  --ring: oklch(0.72 0.14 15);
+  /* === PALETTE: Midnight Indigo · Deep Indigo · Verdant Green · Dark Red === */
+  --background: oklch(0.15 0.04 265);
+  --foreground: oklch(0.96 0.02 90);
+  --card: oklch(0.22 0.05 265);
+  --card-foreground: oklch(0.96 0.02 90);
+  --popover: oklch(0.18 0.05 265);
+  --popover-foreground: oklch(0.96 0.02 90);
+  --primary: oklch(0.52 0.16 150);           /* verdant green */
+  --primary-foreground: oklch(0.98 0.01 90);
+  --secondary: oklch(0.32 0.08 265);
+  --secondary-foreground: oklch(0.96 0.02 90);
+  --muted: oklch(0.26 0.05 265);
+  --muted-foreground: oklch(0.75 0.03 90);
+  --accent: oklch(0.42 0.17 25);             /* dark red */
+  --accent-foreground: oklch(0.98 0.01 90);
+  --destructive: oklch(0.45 0.20 25);
+  --destructive-foreground: oklch(0.98 0.01 90);
+  --border: oklch(0.35 0.06 265 / 55%);
+  --input: oklch(0.24 0.05 265);
+  --ring: oklch(0.52 0.16 150);
 
-  --ember: oklch(0.65 0.18 20);
-  --moon: oklch(0.92 0.04 20);
-  --forest: oklch(0.45 0.12 155);
-  --wheat: oklch(0.82 0.09 55);
-  --blush: oklch(0.8 0.1 355);
-  --rose: oklch(0.6 0.15 5);
-  --peach: oklch(0.82 0.1 55);
-  --wine: oklch(0.35 0.12 10);
+  --ember: oklch(0.55 0.20 25);              /* dark red ember */
+  --moon: oklch(0.92 0.03 90);
+  --forest: oklch(0.52 0.16 150);            /* verdant */
+  --wheat: oklch(0.82 0.09 90);
+  --blush: oklch(0.62 0.14 15);
+  --rose: oklch(0.42 0.17 25);
+  --peach: oklch(0.82 0.08 90);
+  --wine: oklch(0.30 0.14 20);
 }
 
 .dark {
@@ -1087,4 +1087,8 @@
 @keyframes doors-appear {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); filter: blur(10px); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+}
+@keyframes doors-fade {
+  0% { opacity: 0; transform: scale(0.9); filter: blur(10px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
