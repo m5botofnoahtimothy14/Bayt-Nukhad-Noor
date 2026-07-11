@@ -336,13 +336,14 @@ function Portal() {
         >
           <button
             onClick={() => navigate({ to: "/auth" })}
-            className="rounded-full px-10 py-3.5 text-sm serif italic tracking-wider"
+            className="rounded-full px-10 py-3.5 text-sm serif italic tracking-wider transition-all hover:scale-105"
             style={{
-              color: "oklch(0.96 0.03 20)",
+              color: "oklch(0.97 0.02 90)",
               background:
-                "linear-gradient(135deg, oklch(0.72 0.14 15 / 25%), oklch(0.60 0.12 25 / 20%))",
-              border: "1px solid oklch(0.72 0.14 15 / 30%)",
-              boxShadow: "0 0 60px oklch(0.72 0.14 15 / 25%)",
+                "linear-gradient(135deg, oklch(0.52 0.16 150 / 35%), oklch(0.42 0.17 25 / 30%))",
+              border: "1px solid oklch(0.62 0.15 150 / 45%)",
+              boxShadow:
+                "0 0 60px oklch(0.52 0.16 150 / 30%), 0 0 100px oklch(0.42 0.17 25 / 20%)",
               animation: "fade-up 1s ease-out 0.3s both",
             }}
           >
