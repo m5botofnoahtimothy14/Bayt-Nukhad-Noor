@@ -51,9 +51,17 @@ function Portal() {
 
   const openDoors = useCallback(() => {
     if (phase !== "waiting") return;
+    // Persist so the GLTF cat can gate rename until doors are opened.
+    try {
+      localStorage.setItem("bayt-door-opened", "true");
+    } catch {
+      /* ignore */
+    }
+
     setPhase("opening");
     setTimeout(() => setPhase("entered"), 3200);
   }, [phase]);
+
 
   const introActive = phase.startsWith("intro");
 
