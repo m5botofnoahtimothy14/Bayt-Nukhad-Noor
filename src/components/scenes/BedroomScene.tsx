@@ -6,8 +6,8 @@ import { Html } from "@react-three/drei";
 
 type Props = {
   phase: TimePhase;
-  onOpen: (_k: "memory" | "letter" | "photo" | "song") => void;
-  onView: (_m: Memory) => void;
+  onOpen: (k: "memory" | "letter" | "photo" | "song") => void;
+  onView: (m: Memory) => void;
 };
 
 type LampState = { noah: boolean; khadija: boolean };
@@ -30,52 +30,16 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
     <group>
       <ambientLight intensity={isNight ? (bothOff ? 0.03 : 0.08) : 0.2} />
 
-      {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[12, 12]} />
-        <meshStandardMaterial color="#2a2025" roughness={0.9} />
-      </mesh>
+      {/* Full bedroom environment from .blend (decimated to 4MB) */}
+      <GltfModel url="/models/bedroom/scene.glb" position={[0, 0, 0]} scale={1} />
 
-      {/* Back wall */}
-      <mesh position={[0, 2, -3]} receiveShadow>
-        <planeGeometry args={[12, 5]} />
-        <meshStandardMaterial color="#352830" roughness={0.9} />
-      </mesh>
-
-      {/* Bed — center */}
-      <group position={[0, 0.3, -2]}>
-        {/* Mattress */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[3, 0.4, 2]} />
-          <meshStandardMaterial color="#e8ddd0" roughness={0.8} />
-        </mesh>
-        {/* Headboard */}
-        <mesh position={[0, 0.6, -0.9]} castShadow>
-          <boxGeometry args={[3.2, 1, 0.1]} />
-          <meshStandardMaterial color="#5c3d2e" roughness={0.7} />
-        </mesh>
-        {/* Pillows */}
-        <mesh position={[-0.6, 0.35, -0.5]} castShadow>
-          <boxGeometry args={[0.7, 0.15, 0.4]} />
-          <meshStandardMaterial color="#f0e8e0" roughness={0.9} />
-        </mesh>
-        <mesh position={[0.6, 0.35, -0.5]} castShadow>
-          <boxGeometry args={[0.7, 0.15, 0.4]} />
-          <meshStandardMaterial color="#f0e8e0" roughness={0.9} />
-        </mesh>
-      </group>
-
-      {/* Noah's nightstand + lamp — left */}
-      <group position={[-2.2, 0.3, -1.5]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.6, 0.6, 0.5]} />
-          <meshStandardMaterial color="#4a2e1e" roughness={0.7} />
-        </mesh>
+      {/* Noah's lamp — left nightstand area */}
+      <group position={[-2.2, 0.8, -1.5]}>
         {lamps.noah && (
           <>
-            <GltfModel url="/models/lantern/scene.gltf" position={[0, 0.4, 0]} scale={0.25} />
+            <GltfModel url="/models/lantern/scene.gltf" scale={0.25} />
             <pointLight
-              position={[0, 0.7, 0]}
+              position={[0, 0.3, 0]}
               intensity={0.6}
               color={0xff9944}
               distance={3}
@@ -83,26 +47,22 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
             />
           </>
         )}
-        <mesh position={[0, 0.7, 0.3]} onClick={() => toggleLamp("noah")} visible={false}>
+        <mesh onClick={() => toggleLamp("noah")} visible={false}>
           <boxGeometry args={[0.5, 0.5, 0.5]} />
           <meshBasicMaterial transparent opacity={0} />
         </mesh>
-        <Html position={[0, 1.2, 0]} distanceFactor={5} style={{ pointerEvents: "none" }}>
+        <Html position={[0, 0.7, 0]} distanceFactor={5} style={{ pointerEvents: "none" }}>
           <div className="text-[9px] text-white/40 serif italic">Noah</div>
         </Html>
       </group>
 
-      {/* Khadija's nightstand + lamp — right */}
-      <group position={[2.2, 0.3, -1.5]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.6, 0.6, 0.5]} />
-          <meshStandardMaterial color="#4a2e1e" roughness={0.7} />
-        </mesh>
+      {/* Khadija's lamp — right nightstand area */}
+      <group position={[2.2, 0.8, -1.5]}>
         {lamps.khadija && (
           <>
-            <GltfModel url="/models/lantern/scene.gltf" position={[0, 0.4, 0]} scale={0.25} />
+            <GltfModel url="/models/lantern/scene.gltf" scale={0.25} />
             <pointLight
-              position={[0, 0.7, 0]}
+              position={[0, 0.3, 0]}
               intensity={0.6}
               color={0xff9944}
               distance={3}
@@ -110,45 +70,14 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
             />
           </>
         )}
-        <mesh position={[0, 0.7, 0.3]} onClick={() => toggleLamp("khadija")} visible={false}>
+        <mesh onClick={() => toggleLamp("khadija")} visible={false}>
           <boxGeometry args={[0.5, 0.5, 0.5]} />
           <meshBasicMaterial transparent opacity={0} />
         </mesh>
-        <Html position={[0, 1.2, 0]} distanceFactor={5} style={{ pointerEvents: "none" }}>
+        <Html position={[0, 0.7, 0]} distanceFactor={5} style={{ pointerEvents: "none" }}>
           <div className="text-[9px] text-white/40 serif italic">Khadija</div>
         </Html>
       </group>
-
-      {/* Books — on shelf above bed */}
-      <GltfModel
-        url="/models/books/scene.gltf"
-        position={[0, 2.5, -2.8]}
-        scale={0.8}
-        rotation={[0, 0, 0]}
-      />
-
-      {/* Houseplant — corner */}
-      <GltfModel
-        url="/models/houseplants/scene.gltf"
-        position={[3.2, 0, -2.5]}
-        scale={0.6}
-        rotation={[0, -0.5, 0]}
-      />
-
-      {/* Dream journal hotspot */}
-      <mesh position={[-1.5, 0.8, 0]} onClick={() => onOpen("memory")}>
-        <boxGeometry args={[0.3, 0.05, 0.2]} />
-        <meshStandardMaterial color="#8866aa" roughness={0.5} />
-      </mesh>
-      <Html position={[-1.5, 1, 0]} distanceFactor={6} style={{ pointerEvents: "none" }}>
-        <div className="text-[9px] text-purple-300/60 serif italic">dream journal</div>
-      </Html>
-
-      {/* Pillow letter hotspot */}
-      <mesh position={[1.5, 0.6, -0.5]} onClick={() => onOpen("letter")}>
-        <sphereGeometry args={[0.08, 12, 12]} />
-        <meshBasicMaterial color="#ffcc66" transparent opacity={0.5} />
-      </mesh>
 
       {/* Moon light through window (night) */}
       {isNight && (
@@ -161,8 +90,7 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
             intensity={0.3}
             color={0x8899cc}
           />
-          {/* Stars outside */}
-          {Array.from({ length: 15 }).map((_i, i) => (
+          {Array.from({ length: 15 }).map((_v, i) => (
             <mesh key={i} position={[-4 + (i % 5) * 1, 3 + Math.floor(i / 5) * 0.5, -4]}>
               <sphereGeometry args={[0.02, 8, 8]} />
               <meshBasicMaterial color="#ffffff" transparent opacity={0.3 + Math.random() * 0.4} />
@@ -171,7 +99,7 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
         </>
       )}
 
-      {/* Sleep indicator when both lamps off */}
+      {/* Sleep indicator */}
       {bothOff && isNight && (
         <Html position={[0, 2, -1]} distanceFactor={6} center style={{ pointerEvents: "none" }}>
           <div className="rounded-full bg-black/40 px-3 py-1 text-[10px] text-blue-200/50 backdrop-blur-sm serif italic">
@@ -180,9 +108,24 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
         </Html>
       )}
 
-      {/* Memory origami diamonds on wall */}
-      {items?.slice(0, 4).map((_m, i) => (
-        <group key={m.id} position={[-2.5 + i * 1.7, 2.5, -2.9]}>
+      {/* Dream journal hotspot */}
+      <mesh position={[-1.5, 1.2, 0.5]} onClick={() => onOpen("memory")}>
+        <boxGeometry args={[0.3, 0.05, 0.2]} />
+        <meshStandardMaterial color="#8866aa" roughness={0.5} />
+      </mesh>
+      <Html position={[-1.5, 1.4, 0.5]} distanceFactor={6} style={{ pointerEvents: "none" }}>
+        <div className="text-[9px] text-purple-300/60 serif italic">dream journal</div>
+      </Html>
+
+      {/* Pillow letter hotspot */}
+      <mesh position={[1.5, 0.8, -0.5]} onClick={() => onOpen("letter")}>
+        <sphereGeometry args={[0.08, 12, 12]} />
+        <meshBasicMaterial color="#ffcc66" transparent opacity={0.5} />
+      </mesh>
+
+      {/* Memory origami diamonds */}
+      {items?.slice(0, 4).map((m, i) => (
+        <group key={m.id} position={[-2.5 + i * 1.7, 2.5, -2.5]}>
           <mesh onClick={() => onView(m)} rotation={[0, 0, Math.PI / 4]}>
             <boxGeometry args={[0.3, 0.3, 0.02]} />
             <meshStandardMaterial
