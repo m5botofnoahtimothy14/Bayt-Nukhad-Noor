@@ -85,19 +85,46 @@ export type Database = {
           avatar_hue: number | null
           created_at: string
           display_name: string | null
+          display_role: string | null
           id: string
+          timezone: string | null
         }
         Insert: {
           avatar_hue?: number | null
           created_at?: string
           display_name?: string | null
+          display_role?: string | null
           id: string
+          timezone?: string | null
         }
         Update: {
           avatar_hue?: number | null
           created_at?: string
           display_name?: string | null
+          display_role?: string | null
           id?: string
+          timezone?: string | null
+        }
+        Relationships: []
+      }
+      shared_state: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
