@@ -1,14 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useTimeOfDay, type TimePhase } from "@/hooks/useTimeOfDay";
+import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
 import { Cat } from "@/components/world/Cat";
 import { SceneCanvas } from "@/components/world/SceneCanvas";
 
 import { AddMemoryDialog, ViewMemoryDialog, type Memory } from "@/components/world/memories";
-import { HouseScene } from "@/components/scenes/HouseScene";
+import { LivingRoomScene } from "@/components/scenes/LivingRoomScene";
 import { GardenScene } from "@/components/scenes/GardenScene";
 import { ObservatoryScene } from "@/components/scenes/ObservatoryScene";
 import { LakeScene } from "@/components/scenes/LakeScene";
@@ -33,15 +33,8 @@ import {
   BedDouble,
 } from "lucide-react";
 
-const HDR_MAP: Record<TimePhase, string> = {
-  dawn: "/hdr/roof_garden_4k.exr",
-  day: "/hdr/kloppenheim_06_puresky_4k.exr",
-  dusk: "/hdr/venice_sunset_4k.exr",
-  night: "/hdr/dikhololo_night_4k.exr",
-};
-
 export const Route = createFileRoute("/_authenticated/world")({
-  head: () => ({ meta: [{ title: "Bayt Nūkhad Noor" }] }),
+  head: () => ({ meta: [{ title: "Bayt Nukhad Noor" }] }),
   component: World,
 });
 
@@ -101,68 +94,32 @@ function World() {
   };
 
   const currentLoc = LOCATIONS.find((l) => l.id === loc)!;
+  const onOpen = (k: "memory" | "letter" | "photo" | "song") => setAddOpen({ kind: k });
+  const onAdd = (p: { x: number; y: number }) => setAddOpen({ kind: "memory", pos: p });
 
   return (
     <div className="scene">
       <div key={sceneKey}>
-        {/* Real-time 3D ambience layer — Cat and BedroomScene are R3F children */}
-        <SceneCanvas phase={phase} weather={weather.current} hdrSrc={HDR_MAP[phase]}>
+        <SceneCanvas phase={phase} weather={weather.current}>
           <Cat location={loc} phase={phase} season={season} weather={weather.current} />
-          {loc === "bedroom" && (
-            <BedroomScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
-          )}
-        </SceneCanvas>
 
-        {/* CSS/SVG scenes render on top of the Canvas */}
-        {loc === "house" && (
-          <HouseScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
-        )}
-        {loc === "kitchen" && (
-          <KitchenScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
-        )}
-        {loc === "dining" && (
-          <DiningScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
-        )}
-        {loc === "garden" && (
-          <GardenScene
-            phase={phase}
-            season={season}
-            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
-            onView={setViewing}
-          />
-        )}
-        {loc === "balcony" && (
-          <BalconyScene onAdd={(p) => setAddOpen({ kind: "memory", pos: p })} onView={setViewing} />
-        )}
-        {loc === "observatory" && (
-          <ObservatoryScene
-            season={season}
-            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
-            onView={setViewing}
-          />
-        )}
-        {loc === "lake" && (
-          <LakeScene
-            phase={phase}
-            season={season}
-            onAdd={(p) => setAddOpen({ kind: "letter", pos: p })}
-            onView={setViewing}
-          />
-        )}
-        {loc === "forest" && (
-          <ForestScene
-            season={season}
-            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
-            onView={setViewing}
-          />
-        )}
-        {loc === "meadow" && (
-          <MeadowScene
-            season={season}
-            onAdd={(p) => setAddOpen({ kind: "memory", pos: p })}
-            onView={setViewing}
-          />
-        )}
+          {loc === "house" && <LivingRoomScene phase={phase} onOpen={onOpen} onView={setViewing} />}
+          {loc === "kitchen" && <KitchenScene phase={phase} onOpen={onOpen} onView={setViewing} />}
+          {loc === "dining" && <DiningScene phase={phase} onOpen={onOpen} onView={setViewing} />}
+          {loc === "bedroom" && <BedroomScene phase={phase} onOpen={onOpen} onView={setViewing} />}
+          {loc === "garden" && (
+            <GardenScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />
+          )}
+          {loc === "balcony" && <BalconyScene season={season} onAdd={onAdd} onView={setViewing} />}
+          {loc === "observatory" && (
+            <ObservatoryScene season={season} onAdd={onAdd} onView={setViewing} />
+          )}
+          {loc === "lake" && (
+            <LakeScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />
+          )}
+          {loc === "forest" && <ForestScene season={season} onAdd={onAdd} onView={setViewing} />}
+          {loc === "meadow" && <MeadowScene season={season} onAdd={onAdd} onView={setViewing} />}
+        </SceneCanvas>
       </div>
 
       {/* Wish-on-a-star overlay (balcony + observatory) */}
@@ -190,7 +147,7 @@ function World() {
         style={{ animation: "fade-up 0.6s ease-out both" }}
       >
         <p className="text-[10px] uppercase tracking-[0.5em] text-primary/60 serif">
-          {phase} · {weather.current !== "clear" ? weather.current : season}
+          {phase} . {weather.current !== "clear" ? weather.current : season}
         </p>
         <h2 className="serif mt-1 text-2xl italic text-foreground drop-shadow-lg">
           {currentLoc.name}

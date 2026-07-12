@@ -1,5 +1,5 @@
-import { Suspense, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useMemo, useRef, useCallback } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { LightingController } from "./LightingController";
@@ -10,17 +10,39 @@ import type { Weather } from "@/hooks/useWeather";
 type Props = {
   phase: TimePhase;
   weather: Weather;
-  /** optional HDRI URL in /public or absolute */
-  hdrSrc?: string;
-  /** children are GLTF scene nodes */
   children?: React.ReactNode;
 };
 
-export function SceneCanvas({ phase, weather, hdrSrc, children }: Props) {
-  const envKey = useMemo(() => {
-    // force re-render when we change time-of-day buckets
-    return `${phase}-${weather}`;
-  }, [phase, weather]);
+const PHASE_PRESET: Record<TimePhase, string> = {
+  dawn: "dawn",
+  day: "sunset",
+  dusk: "sunset",
+  night: "night",
+};
+
+const CAM_BASE = new THREE.Vector3(0, 2.2, 5);
+const CAM_LOOK = new THREE.Vector3(0, 1.0, 0);
+const PARALLAX_STRENGTH = 0.4;
+
+function CameraRig() {
+  const { camera, pointer } = useThree();
+  const target = useRef(new THREE.Vector3());
+
+  useFrame(() => {
+    target.current.set(
+      CAM_BASE.x + pointer.x * PARALLAX_STRENGTH,
+      CAM_BASE.y + pointer.y * PARALLAX_STRENGTH * 0.5,
+      CAM_BASE.z,
+    );
+    camera.position.lerp(target.current, 0.04);
+    camera.lookAt(CAM_LOOK);
+  });
+
+  return null;
+}
+
+export function SceneCanvas({ phase, weather, children }: Props) {
+  const envKey = useMemo(() => `${phase}-${weather}`, [phase, weather]);
 
   return (
     <div className="absolute inset-0">
@@ -36,24 +58,16 @@ export function SceneCanvas({ phase, weather, hdrSrc, children }: Props) {
         }}
       >
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 2.2, 5]} fov={45} />
+          <PerspectiveCamera makeDefault position={CAM_BASE.toArray()} fov={45} />
+          <CameraRig />
 
-          {/* Default HDRI if provided; otherwise just Environment preset */}
-          {hdrSrc ? (
-            <Environment files={hdrSrc} background={false} />
-          ) : (
-            <Environment preset={phase === "night" ? "city" : "sunset"} background={false} />
-          )}
-
+          <Environment preset={PHASE_PRESET[phase]} background={false} />
           <LightingController phase={phase} weather={weather} />
-
-          {/* Real rain */}
           <RainSystem weather={weather} intensityBucket={phase === "night" ? "night" : "day"} />
 
           {children}
 
-          {/* Subtle fog for depth */}
-          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 6, 16]} />
+          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 8, 22]} />
         </Suspense>
       </Canvas>
     </div>
