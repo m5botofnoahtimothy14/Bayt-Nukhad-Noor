@@ -57,7 +57,7 @@ export function useSharedState<T>(key: string, initial: T) {
       await supabase
         .from("shared_state")
         .upsert(
-          { key, value: resolved as unknown as Record<string, unknown>, updated_by: uid, updated_at: new Date().toISOString() },
+          { key, value: resolved as never, updated_by: uid, updated_at: new Date().toISOString() },
           { onConflict: "key" },
         );
     },
