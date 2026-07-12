@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTimeOfDay, SKY, type TimePhase } from "@/hooks/useTimeOfDay";
 import { useMemories, type Memory } from "@/components/world/memories";
+import { useSharedState } from "@/hooks/useSharedState";
+import { Flame, Music2, Plus } from "lucide-react";
 
 type Props = {
   phase: TimePhase;
@@ -13,9 +15,77 @@ const BOOK_COLORS = Array.from({ length: 35 }, (_, i) => ({
   h: 55 + ((i * 13) % 45),
 }));
 
+const TRACKS = [
+  { title: "La Vie en Rose", artist: "Édith Piaf" },
+  { title: "Moon River", artist: "Audrey Hepburn" },
+  { title: "Kaze no Tōrimichi", artist: "Joe Hisaishi" },
+  { title: "Nuvole Bianche", artist: "Ludovico Einaudi" },
+  { title: "Fann Ya Gharam", artist: "Fairuz" },
+  { title: "Clair de Lune", artist: "Debussy" },
+];
+
+type FireplaceState = { warmth: number; lastLogAt: string };
+type VinylState = { trackIdx: number; playing: boolean; startedAt: string };
+
 export function HouseScene({ phase, onOpen, onView }: Props) {
   const { items } = useMemories("house");
+
+  // ── Shared realtime features ────────────────────────────────
+  const fireplace = useSharedState<FireplaceState>("house.fireplace", {
+    warmth: 40,
+    lastLogAt: new Date().toISOString(),
+  });
+  const vinyl = useSharedState<VinylState>("house.vinyl", {
+    trackIdx: 0,
+    playing: false,
+    startedAt: new Date().toISOString(),
+  });
+
+  // Warmth decays over real time (visual only; 1 point / 30s)
+  const [warmthNow, setWarmthNow] = useState(fireplace.value.warmth);
+  useEffect(() => {
+    const tick = () => {
+      const elapsedMin =
+        (Date.now() - new Date(fireplace.value.lastLogAt).getTime()) / 60000;
+      const decayed = Math.max(0, fireplace.value.warmth - elapsedMin * 2);
+      setWarmthNow(decayed);
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
+  }, [fireplace.value]);
+
+  const addLog = () =>
+    fireplace.setValue({
+      warmth: Math.min(100, warmthNow + 25),
+      lastLogAt: new Date().toISOString(),
+    });
+
+  const nextTrack = () =>
+    vinyl.setValue({
+      trackIdx: (vinyl.value.trackIdx + 1) % TRACKS.length,
+      playing: true,
+      startedAt: new Date().toISOString(),
+    });
+  const toggleVinyl = () =>
+    vinyl.setValue({ ...vinyl.value, playing: !vinyl.value.playing });
+
+  const currentTrack = TRACKS[vinyl.value.trackIdx] ?? TRACKS[0];
+
+  // Dual timezone clock
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000 * 30);
+    return () => clearInterval(id);
+  }, []);
+  const noahTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const khadijaTZ =
+    noahTZ === "Asia/Dubai" ? "Europe/London" : "Asia/Dubai";
+  const fmt = (tz: string) =>
+    now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+
   const wallGlow = phase === "night" || phase === "dusk" ? 0.9 : 0.4;
+  const flameIntensity = 0.4 + (warmthNow / 100) * 0.8;
 
   const dust = useMemo(
     () =>
@@ -25,7 +95,7 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
         dx: -25 + ((i * 13) % 50),
         dy: -50 - ((i * 7) % 70),
         dur: 7 + ((i * 3) % 9),
-        delay: ((i * 1.5) % 12),
+        delay: (i * 1.5) % 12,
         size: 1 + (i % 3) * 0.6,
       })),
     [],
@@ -39,7 +109,7 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
             top: 5 + ((i * 4.3) % 65),
             size: 1 + (i % 3) * 0.5,
             dur: 2 + ((i * 1.3) % 3),
-            delay: ((i * 0.3) % 3),
+            delay: (i * 0.3) % 3,
           }))
         : [],
     [phase],
@@ -52,34 +122,31 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
         background: `linear-gradient(180deg, oklch(0.18 0.04 350) 0%, oklch(0.14 0.03 5) 100%)`,
       }}
     >
-      {/* === DEPTH LAYER: Far wall === */}
+      {/* Far wall */}
       <div
         className="depth-layer depth-farthest absolute inset-0"
         style={{
           background: `
           repeating-linear-gradient(90deg, oklch(0.26 0.05 355) 0 95px, oklch(0.23 0.05 355) 95px 96px),
-          radial-gradient(ellipse at 35% 40%, oklch(0.72 0.14 15 / ${wallGlow * 0.35}) 0%, transparent 55%),
-          radial-gradient(ellipse at 65% 55%, oklch(0.68 0.12 25 / ${wallGlow * 0.15}) 0%, transparent 40%)
+          radial-gradient(ellipse at 35% 40%, oklch(0.72 0.14 15 / ${wallGlow * flameIntensity * 0.4}) 0%, transparent 55%),
+          radial-gradient(ellipse at 65% 55%, oklch(0.68 0.12 25 / ${wallGlow * flameIntensity * 0.2}) 0%, transparent 40%)
         `,
-          animation: "gentle-rotate 20s ease-in-out infinite",
         }}
       />
 
-      {/* Warm ambient wash from fireplace */}
+      {/* Warm ambient wash from fireplace, scaled by warmth */}
       <div
         className="depth-layer depth-farthest absolute bottom-0 left-1/2 -translate-x-1/2 w-[650px] h-[450px] pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse at center bottom, oklch(0.72 0.14 15 / 14%), transparent 70%)",
+          background: `radial-gradient(ellipse at center bottom, oklch(0.72 0.14 15 / ${flameIntensity * 20}%), transparent 70%)`,
           animation: "flicker 3.5s ease-in-out infinite",
+          opacity: 0.3 + flameIntensity * 0.7,
+          transition: "opacity 2s ease-out",
         }}
       />
 
-      {/* Floating dust in 3D */}
-      <div
-        className="pointer-events-none absolute inset-0 depth-layer depth-mid"
-        style={{ animation: "parallax-sway-x 25s ease-in-out infinite" }}
-      >
+      {/* Dust */}
+      <div className="pointer-events-none absolute inset-0 depth-layer depth-mid">
         {dust.map((p, i) => (
           <span
             key={i}
@@ -90,12 +157,7 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
                 height: p.size,
                 left: `${p.left}%`,
                 top: `${p.top}%`,
-                background:
-                  i % 3 === 0
-                    ? "oklch(0.8 0.12 355 / 50%)"
-                    : i % 3 === 1
-                      ? "oklch(0.82 0.10 25 / 40%)"
-                      : "oklch(0.78 0.08 15 / 35%)",
+                background: "oklch(0.82 0.10 25 / 40%)",
                 "--dx": `${p.dx}px`,
                 "--dy": `${p.dy}px`,
                 animation: `dust-float ${p.dur}s ease-in-out ${p.delay}s infinite`,
@@ -105,21 +167,13 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
         ))}
       </div>
 
-      {/* === DYNAMIC WINDOW === */}
+      {/* Window */}
       <button
         onClick={() => onOpen("photo")}
         title="the window"
-        className="depth-layer depth-near group absolute right-[7%] top-[10%] h-48 w-64 overflow-hidden rounded-xl border-4 border-[oklch(0.28_0.05_350)] shadow-2xl transition-all duration-700 hover:scale-[1.04] hover:shadow-[0_0_50px_oklch(0.72_0.14_15_/_25%)]"
-        style={{ animation: "depth-pulse 12s ease-in-out infinite" }}
+        className="depth-layer depth-near group absolute right-[7%] top-[10%] h-48 w-64 overflow-hidden rounded-xl border-4 border-[oklch(0.28_0.05_350)] shadow-2xl transition-all duration-700 hover:scale-[1.04]"
       >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: SKY[phase],
-            animation: "slow-pan 55s ease-in-out infinite alternate",
-          }}
-        />
-        {/* Stars at night */}
+        <div className="absolute inset-0" style={{ background: SKY[phase] }} />
         {windowStars.map((s, i) => (
           <span
             key={i}
@@ -134,44 +188,6 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
             }}
           />
         ))}
-        {/* Clouds at dawn/dusk */}
-        {(phase === "dawn" || phase === "dusk") &&
-          Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute pointer-events-none"
-              style={{
-                top: `${18 + i * 16}%`,
-                left: `${-20 + i * 30}%`,
-                width: 130 + i * 45,
-                height: 22 + i * 6,
-                background: `radial-gradient(ellipse, oklch(0.9 0.06 ${phase === "dawn" ? 40 : 20} / 35%), transparent 70%)`,
-                animation: `cloud-drift ${28 + i * 12}s linear infinite`,
-                animationDelay: `${i * -10}s`,
-              }}
-            />
-          ))}
-        {/* Rain droplets on window */}
-        {phase === "night" && (
-          <>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full pointer-events-none"
-                style={{
-                  left: `${15 + i * 14}%`,
-                  top: `${10 + (i * 17) % 60}%`,
-                  width: 3,
-                  height: 5,
-                  background: "oklch(0.9 0.03 240 / 30%)",
-                  animation: `rain-fall ${2 + i * 0.5}s linear infinite`,
-                  animationDelay: `${i * 0.4}s`,
-                }}
-              />
-            ))}
-          </>
-        )}
-        {/* Window frame */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -179,34 +195,33 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
               "linear-gradient(90deg, transparent 46%, oklch(0.28 0.05 350) 46% 54%, transparent 54%), linear-gradient(0deg, transparent 46%, oklch(0.28 0.05 350) 46% 54%, transparent 54%)",
           }}
         />
-        {/* Curtains */}
-        <div
-          className="absolute left-0 top-0 h-full w-8"
-          style={{
-            background: "linear-gradient(90deg, oklch(0.5 0.08 355), oklch(0.35 0.06 355))",
-            animation: "sway 7s ease-in-out infinite",
-            transformOrigin: "top left",
-          }}
-        />
-        <div
-          className="absolute right-0 top-0 h-full w-8"
-          style={{
-            background:
-              "linear-gradient(-90deg, oklch(0.5 0.08 355), oklch(0.35 0.06 355))",
-            animation: "sway 8.5s ease-in-out infinite",
-            transformOrigin: "top right",
-          }}
-        />
       </button>
 
-      {/* === BOOKSHELF === */}
+      {/* ── DUAL CLOCK on the mantel ────────────────────────── */}
+      <div className="depth-layer depth-near absolute left-1/2 top-[42%] -translate-x-1/2 flex gap-6 rounded-2xl border border-white/10 bg-black/40 px-5 py-2.5 backdrop-blur-md shadow-2xl">
+        {[
+          { name: "Noah", tz: noahTZ },
+          { name: "Khadija", tz: khadijaTZ },
+        ].map((p) => (
+          <div key={p.name} className="text-center">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-primary/70 serif">
+              {p.name}
+            </p>
+            <p className="serif text-xl italic text-foreground tabular-nums">
+              {fmt(p.tz)}
+            </p>
+            <p className="text-[8px] text-muted-foreground">{p.tz.split("/")[1] ?? p.tz}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Bookshelf */}
       <button
         onClick={() => onOpen("memory")}
         title="bookshelf — leave a memory"
-        className="depth-layer depth-near group absolute left-[4%] top-[13%] h-60 w-48 rounded-sm shadow-2xl transition-all duration-300 hover:brightness-110 hover:scale-[1.02]"
+        className="depth-layer depth-near group absolute left-[4%] top-[13%] h-60 w-48 rounded-sm shadow-2xl transition-all duration-300 hover:brightness-110"
         style={{
-          background:
-            "linear-gradient(180deg, oklch(0.30 0.05 350), oklch(0.20 0.04 355))",
+          background: "linear-gradient(180deg, oklch(0.30 0.05 350), oklch(0.20 0.04 355))",
         }}
       >
         {[0, 1, 2, 3].map((row) => (
@@ -218,157 +233,111 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
             {Array.from({ length: 7 }).map((_, i) => (
               <span
                 key={i}
-                className="flex-1 rounded-sm transition-all duration-300 group-hover:scale-y-[1.03]"
+                className="flex-1 rounded-sm"
                 style={{
-                  background:
-                    BOOK_COLORS[row * 7 + i]?.bg ?? "oklch(0.35 0.05 350)",
+                  background: BOOK_COLORS[row * 7 + i]?.bg ?? "oklch(0.35 0.05 350)",
                   height: `${BOOK_COLORS[row * 7 + i]?.h ?? 80}%`,
-                  transitionDelay: `${i * 25}ms`,
                   boxShadow: "inset -2px 0 4px oklch(0 0 0 / 20%)",
                 }}
               />
             ))}
           </div>
         ))}
-        <div
-          className="absolute inset-x-0 bottom-0 h-8 pointer-events-none"
-          style={{
-            background: "linear-gradient(0deg, oklch(0.12 0.03 350), transparent)",
-          }}
-        />
       </button>
 
-      {/* === FIREPLACE === */}
-      <div
-        className="depth-layer absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-64"
-        style={{ transform: "translateX(-50%) translateZ(50px)" }}
+      {/* ── FIREPLACE (interactive: click to add a log) ────── */}
+      <button
+        onClick={addLog}
+        title="add a log to the fire"
+        className="depth-layer group absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-64 focus:outline-none"
       >
-        <div
-          className="absolute inset-x-0 top-6 h-4 rounded"
-          style={{ background: "oklch(0.32 0.05 350)" }}
-        />
-        <div
-          className="absolute inset-x-8 bottom-0 top-12 rounded-t-2xl overflow-hidden"
-          style={{ background: "oklch(0.07 0.02 350)" }}
-        >
+        <div className="absolute inset-x-0 top-6 h-4 rounded" style={{ background: "oklch(0.32 0.05 350)" }} />
+        <div className="absolute inset-x-8 bottom-0 top-12 rounded-t-2xl overflow-hidden" style={{ background: "oklch(0.07 0.02 350)" }}>
           <div
-            className="absolute inset-x-4 bottom-0 h-28"
+            className="absolute inset-x-4 bottom-0"
             style={{
+              height: `${40 + flameIntensity * 90}px`,
               background:
                 "radial-gradient(ellipse at center bottom, oklch(0.85 0.2 15), oklch(0.65 0.2 10) 35%, oklch(0.45 0.18 5) 65%, transparent 100%)",
               filter: "blur(5px)",
               animation: "flicker 1.2s ease-in-out infinite",
+              opacity: 0.2 + flameIntensity,
+              transition: "height 1.2s ease-out, opacity 1.2s ease-out",
             }}
           />
           <div
-            className="absolute inset-x-10 bottom-0 h-20"
+            className="absolute inset-x-10 bottom-0"
             style={{
+              height: `${30 + flameIntensity * 60}px`,
               background:
                 "radial-gradient(ellipse at center bottom, oklch(0.95 0.18 20), oklch(0.8 0.2 15) 55%, transparent 100%)",
               animation: "flicker 0.8s ease-in-out infinite reverse",
+              opacity: 0.2 + flameIntensity,
+              transition: "height 1.2s ease-out",
             }}
           />
-          <div
-            className="absolute inset-x-14 bottom-0 h-12"
-            style={{
-              background:
-                "radial-gradient(ellipse at center bottom, oklch(1 0.15 25), oklch(0.9 0.16 20) 50%, transparent 100%)",
-              animation: "flicker 1.5s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="absolute bottom-1 left-3 right-3 h-3.5 rounded-full"
-            style={{
-              background:
-                "linear-gradient(90deg, oklch(0.18 0.03 350), oklch(0.25 0.04 5), oklch(0.18 0.03 350))",
-            }}
-          />
+          <div className="absolute bottom-1 left-3 right-3 h-3.5 rounded-full" style={{ background: "linear-gradient(90deg, oklch(0.18 0.03 350), oklch(0.25 0.04 5), oklch(0.18 0.03 350))" }} />
         </div>
-        <div
-          className="absolute inset-x-6 bottom-0 top-10 rounded-t-xl border border-[oklch(0.16_0.03_350)] pointer-events-none"
-        />
-        <div
-          className="absolute -inset-44 -z-10 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(0.72 0.14 15 / 35%), oklch(0.68 0.12 20 / 10%) 40%, transparent 65%)",
-            animation: "flicker 2.5s ease-in-out infinite",
-          }}
-        />
-      </div>
+        {/* Warmth badge */}
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[10px] backdrop-blur-md">
+          <Flame size={11} className="text-primary" />
+          <span className="text-foreground tabular-nums">{Math.round(warmthNow)}°</span>
+          <Plus size={10} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition" />
+        </div>
+      </button>
 
-      {/* === SOFA === */}
+      {/* Sofa */}
       <div
         className="depth-layer depth-near absolute bottom-5 right-[6%] h-28 w-72 rounded-3xl shadow-2xl"
-        style={{
-          background: "linear-gradient(180deg, oklch(0.42 0.08 355), oklch(0.28 0.06 355))",
-          animation: "depth-pulse 15s ease-in-out infinite",
-        }}
+        style={{ background: "linear-gradient(180deg, oklch(0.42 0.08 355), oklch(0.28 0.06 355))" }}
       >
-        <div
-          className="absolute -top-5 left-4 right-4 h-10 rounded-2xl"
-          style={{ background: "oklch(0.46 0.09 355)" }}
-        />
-        <div className="absolute left-6 right-6 top-4 bottom-2 flex gap-2">
-          <div className="flex-1 rounded-xl" style={{ background: "oklch(0.44 0.08 355)" }} />
-          <div className="flex-1 rounded-xl" style={{ background: "oklch(0.40 0.08 355)" }} />
-        </div>
+        <div className="absolute -top-5 left-4 right-4 h-10 rounded-2xl" style={{ background: "oklch(0.46 0.09 355)" }} />
       </div>
 
-      {/* === MUSIC CORNER (record player + speakers) === */}
-      <div className="depth-layer depth-near absolute bottom-6 left-[5%] flex items-end gap-3">
-        {/* Record player */}
-        <button
-          onClick={() => onOpen("song")}
-          title="record player — leave a song"
-          className="group flex h-24 w-32 items-center justify-center rounded-xl shadow-xl transition-all duration-300 hover:brightness-110 hover:scale-[1.06]"
-          style={{
-            background:
-              "linear-gradient(135deg, oklch(0.28 0.04 350), oklch(0.22 0.04 355))",
-          }}
+      {/* ── VINYL PLAYER (click record to play/pause, needle to next) ── */}
+      <div className="depth-layer depth-near absolute bottom-6 left-[5%] flex flex-col items-start gap-2">
+        <div
+          className="flex h-24 w-32 items-center justify-center rounded-xl shadow-xl relative"
+          style={{ background: "linear-gradient(135deg, oklch(0.28 0.04 350), oklch(0.22 0.04 355))" }}
         >
-          <div
-            className="h-16 w-16 rounded-full shadow-inner"
+          <button
+            onClick={toggleVinyl}
+            title={vinyl.value.playing ? "pause" : "play"}
+            className="h-16 w-16 rounded-full shadow-inner transition-transform hover:scale-105"
             style={{
               background:
                 "radial-gradient(circle, oklch(0.60 0.14 25) 18%, oklch(0.10 0.02 350) 20%, oklch(0.13 0.02 355) 100%)",
-              animation: "spin 5s linear infinite",
+              animation: vinyl.value.playing ? "spin 5s linear infinite" : "none",
             }}
           />
-          <div
-            className="absolute top-2 right-3 w-0.5 h-8 origin-top"
-            style={{
-              background: "oklch(0.45 0.04 350)",
-              transform: "rotate(25deg)",
-            }}
+          <button
+            onClick={nextTrack}
+            title="next track"
+            className="absolute top-1 right-2 w-1 h-10 origin-top hover:h-11 transition-all"
+            style={{ background: "oklch(0.55 0.08 350)", transform: "rotate(25deg)" }}
           />
-        </button>
-        {/* Speaker */}
-        <div
-          className="h-16 w-10 rounded-lg shadow-lg"
-          style={{
-            background:
-              "linear-gradient(180deg, oklch(0.22 0.03 350), oklch(0.16 0.02 355))",
-          }}
-        >
-          <div className="mx-auto mt-2 h-6 w-6 rounded-full border border-white/[0.06]" style={{ background: "oklch(0.12 0.02 350)" }} />
-          <div className="mx-auto mt-1.5 h-3 w-3 rounded-full border border-white/[0.04]" style={{ background: "oklch(0.10 0.02 350)" }} />
+        </div>
+        <div className="min-w-[9rem] rounded-lg border border-white/10 bg-black/50 px-2.5 py-1.5 backdrop-blur-md text-left">
+          <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-primary/70">
+            <Music2 size={9} />
+            {vinyl.value.playing ? "now playing" : "paused"}
+          </div>
+          <p className="serif text-xs italic text-foreground truncate">{currentTrack.title}</p>
+          <p className="text-[9px] text-muted-foreground truncate">{currentTrack.artist}</p>
         </div>
       </div>
 
-      {/* === MEMORY WALL (photos) === */}
-      <div className="depth-layer depth-mid absolute left-[33%] top-[12%] flex gap-4">
+      {/* Memory photos strip */}
+      <div className="depth-layer depth-mid absolute left-[33%] top-[16%] flex gap-4">
         {items.slice(0, 4).map((m, i) => (
           <button
             key={m.id}
             onClick={() => onView(m)}
             title={m.title}
-            className="h-20 w-16 rounded-sm border-2 border-[oklch(0.45_0.06_350)] shadow-xl transition-all duration-500 hover:scale-110 hover:shadow-[0_0_25px_oklch(0.72_0.14_15_/_25%)]"
+            className="h-20 w-16 rounded-sm border-2 border-[oklch(0.45_0.06_350)] shadow-xl transition-all duration-500 hover:scale-110"
             style={{
               background: `linear-gradient(135deg, oklch(${0.42 + (i % 3) * 0.08} 0.12 ${350 + i * 20}), oklch(0.32 0.08 10))`,
               transform: `perspective(600px) rotateY(${i % 2 ? -3 : 3}deg) rotateX(2deg)`,
-              animation: `card-3d-hover ${6 + i}s ease-in-out infinite`,
-              animationDelay: `${i * 1.5}s`,
             }}
           />
         ))}
@@ -379,32 +348,8 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
         )}
       </div>
 
-      {/* === INDOOR PLANT === */}
-      <div className="depth-layer depth-near absolute bottom-0 right-[28%] pointer-events-none">
-        <svg width="50" height="70" viewBox="0 0 50 70">
-          <rect x="15" y="50" width="20" height="20" rx="3" fill="oklch(0.30 0.05 20)" />
-          <path d="M25 50 Q20 35 10 20" stroke="oklch(0.40 0.12 155)" strokeWidth="2" fill="none" style={{ animation: "sway 5s ease-in-out infinite" }} />
-          <path d="M25 50 Q30 30 40 18" stroke="oklch(0.42 0.12 150)" strokeWidth="2" fill="none" style={{ animation: "sway 6s ease-in-out 1s infinite" }} />
-          <path d="M25 50 Q25 30 25 15" stroke="oklch(0.38 0.10 148)" strokeWidth="2" fill="none" style={{ animation: "sway 4.5s ease-in-out 0.5s infinite" }} />
-          <ellipse cx="10" cy="18" rx="8" ry="5" fill="oklch(0.42 0.12 155)" style={{ animation: "sway 5s ease-in-out infinite", transformOrigin: "10px 22px" }} />
-          <ellipse cx="40" cy="16" rx="9" ry="5" fill="oklch(0.44 0.12 150)" style={{ animation: "sway 6s ease-in-out 1s infinite", transformOrigin: "40px 20px" }} />
-          <ellipse cx="25" cy="13" rx="7" ry="5" fill="oklch(0.40 0.10 148)" style={{ animation: "sway 4.5s ease-in-out 0.5s infinite", transformOrigin: "25px 18px" }} />
-        </svg>
-      </div>
-
-      {/* Small rug */}
-      <div
-        className="absolute bottom-1 left-1/2 -translate-x-1/2 w-80 h-5 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, oklch(0.40 0.06 355 / 40%), oklch(0.45 0.08 10 / 50%), oklch(0.40 0.06 355 / 40%), transparent)",
-          borderRadius: "50%",
-          filter: "blur(2px)",
-        }}
-      />
-
-      {/* Embers rising in 3D */}
-      <div className="pointer-events-none absolute bottom-40 left-1/2 -translate-x-1/2">
+      {/* Embers scaled by warmth */}
+      <div className="pointer-events-none absolute bottom-40 left-1/2 -translate-x-1/2" style={{ opacity: flameIntensity }}>
         {Array.from({ length: 12 }).map((_, i) => (
           <span
             key={i}
@@ -414,12 +359,7 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
               height: 1 + (i % 3) * 0.5,
               left: (i - 6) * 6,
               bottom: 0,
-              background:
-                i % 3 === 0
-                  ? "oklch(0.85 0.18 15)"
-                  : i % 3 === 1
-                    ? "oklch(0.80 0.16 5)"
-                    : "oklch(0.75 0.14 25)",
+              background: i % 2 ? "oklch(0.85 0.18 15)" : "oklch(0.80 0.16 5)",
               animation: `ember-rise ${3 + ((i * 0.6) % 2.5)}s ease-out ${i * 0.3}s infinite`,
             }}
           />
@@ -429,9 +369,7 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
       {/* Floor gradient */}
       <div
         className="absolute bottom-0 inset-x-0 h-24 pointer-events-none"
-        style={{
-          background: "linear-gradient(0deg, oklch(0.15 0.03 350), transparent)",
-        }}
+        style={{ background: "linear-gradient(0deg, oklch(0.15 0.03 350), transparent)" }}
       />
     </div>
   );
