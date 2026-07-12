@@ -31,9 +31,6 @@ export function useRaycastHotspots({
   const onPointerDown = useCallback(
     (e: { clientX: number; clientY: number; target: EventTarget | null }) => {
       if (!enabled) return;
-      if (!"currentTarget" in e) {
-        // tolerate unknown event shape
-      }
 
       // SceneCanvas is responsible for setting pointerNdc; we compute defensively from DOM event
       // using the event target's bounding rect if available.
