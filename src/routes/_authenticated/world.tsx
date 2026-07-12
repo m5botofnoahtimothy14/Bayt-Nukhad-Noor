@@ -18,6 +18,7 @@ import { BalconyScene } from "@/components/scenes/BalconyScene";
 import { KitchenScene } from "@/components/scenes/KitchenScene";
 import { DiningScene } from "@/components/scenes/DiningScene";
 import { BedroomScene } from "@/components/scenes/BedroomScene";
+import { WishOverlay } from "@/components/world/WishOverlay";
 import {
   Home,
   Flower2,
