@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { type Season } from "@/hooks/useSeason";
+import { SceneModelOverlay, TelescopeModel } from "@/components/models";
 
 type Props = {
   season?: Season;
@@ -619,10 +620,10 @@ export function ObservatoryScene({ season, onAdd, onView }: Props) {
         />
       </svg>
 
-      {/* Telescope */}
+      {/* Telescope - 3D model */}
       <button
         onClick={() => setTelescopeActive(!telescopeActive)}
-        className="absolute depth-layer depth-near cursor-pointer group"
+        className="absolute depth-layer depth-near cursor-pointer group pointer-events-auto"
         style={{
           left: "48%",
           bottom: "22%",
@@ -631,139 +632,9 @@ export function ObservatoryScene({ season, onAdd, onView }: Props) {
         }}
         title={telescopeActive ? "Click to close the telescope" : "Click to gaze at the stars"}
       >
-        <svg
-          width="100"
-          height="140"
-          viewBox="0 0 100 140"
-          className="transition-transform duration-500"
-          style={{
-            transform: telescopeActive ? "rotate(-25deg)" : "rotate(-15deg)",
-            filter: telescopeActive
-              ? "drop-shadow(0 0 15px oklch(0.8 0.12 200 / 50%))"
-              : "drop-shadow(0 0 6px oklch(0.3 0.03 280 / 40%))",
-          }}
-        >
-          {/* Tripod legs */}
-          <line
-            x1="50"
-            y1="95"
-            x2="25"
-            y2="138"
-            stroke="oklch(0.4 0.03 280)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <line
-            x1="50"
-            y1="95"
-            x2="75"
-            y2="138"
-            stroke="oklch(0.4 0.03 280)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <line
-            x1="50"
-            y1="95"
-            x2="50"
-            y2="140"
-            stroke="oklch(0.4 0.03 280)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          {/* Mount / pivot */}
-          <circle
-            cx="50"
-            cy="90"
-            r="6"
-            fill="oklch(0.45 0.04 280)"
-            stroke="oklch(0.55 0.04 280)"
-            strokeWidth="1.5"
-          />
-          {/* Telescope tube — main body */}
-          <rect
-            x="38"
-            y="10"
-            width="24"
-            height="82"
-            rx="5"
-            fill="url(#tubeGrad)"
-            stroke="oklch(0.5 0.04 260 / 60%)"
-            strokeWidth="1"
-          />
-          {/* Tube rings / details */}
-          <rect
-            x="36"
-            y="30"
-            width="28"
-            height="4"
-            rx="2"
-            fill="oklch(0.55 0.04 270 / 50%)"
-          />
-          <rect
-            x="36"
-            y="60"
-            width="28"
-            height="4"
-            rx="2"
-            fill="oklch(0.55 0.04 270 / 50%)"
-          />
-          {/* Lens / aperture end */}
-          <ellipse
-            cx="50"
-            cy="12"
-            rx="14"
-            ry="5"
-            fill="oklch(0.3 0.06 260)"
-            stroke="oklch(0.6 0.06 240 / 60%)"
-            strokeWidth="1.5"
-          />
-          {/* Lens glass */}
-          <ellipse
-            cx="50"
-            cy="11"
-            rx="10"
-            ry="3.5"
-            fill="oklch(0.5 0.08 240 / 40%)"
-          />
-          {telescopeActive && (
-            <ellipse
-              cx="50"
-              cy="11"
-              rx="8"
-              ry="2.5"
-              fill="oklch(0.7 0.12 200 / 30%)"
-              className="animate-pulse"
-            />
-          )}
-          {/* Eyepiece */}
-          <rect
-            x="42"
-            y="86"
-            width="16"
-            height="10"
-            rx="3"
-            fill="oklch(0.35 0.04 280)"
-            stroke="oklch(0.5 0.04 280 / 50%)"
-            strokeWidth="1"
-          />
-          {/* Focus knob */}
-          <circle
-            cx="66"
-            cy="50"
-            r="4"
-            fill="oklch(0.4 0.03 280)"
-            stroke="oklch(0.5 0.04 280 / 50%)"
-            strokeWidth="1"
-          />
-          <defs>
-            <linearGradient id="tubeGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="oklch(0.38 0.05 270)" />
-              <stop offset="40%" stopColor="oklch(0.5 0.05 275)" />
-              <stop offset="100%" stopColor="oklch(0.35 0.04 270)" />
-            </linearGradient>
-          </defs>
-        </svg>
+        <SceneModelOverlay>
+          <TelescopeModel position={[0, -1.5, 0]} scale={0.6} rotation={[0, telescopeActive ? -Math.PI / 4 : -Math.PI / 6, 0]} />
+        </SceneModelOverlay>
       </button>
 
       {/* Telescope viewport overlay */}

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useTimeOfDay } from "@/hooks/useTimeOfDay";
+import { useTimeOfDay, type TimePhase } from "@/hooks/useTimeOfDay";
 import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
 import { Cat } from "@/components/world/Cat";
@@ -31,6 +31,13 @@ import {
   Utensils,
   BedDouble,
 } from "lucide-react";
+
+const HDR_MAP: Record<TimePhase, string> = {
+  dawn: "/hdr/roof_garden_4k.exr",
+  day: "/hdr/kloppenheim_06_puresky_4k.exr",
+  dusk: "/hdr/venice_sunset_4k.exr",
+  night: "/hdr/dikhololo_night_4k.exr",
+};
 
 export const Route = createFileRoute("/_authenticated/world")({
   head: () => ({ meta: [{ title: "Bayt Nūkhad Noor" }] }),
@@ -97,13 +104,16 @@ function World() {
   return (
     <div className="scene">
       <div key={sceneKey}>
-        {/* Real-time 3D ambience layer (scaffolding only; no GLTF yet) */}
-        <SceneCanvas phase={phase} weather={weather.current}>
-          {/* placeholder */}
+        {/* Real-time 3D ambience layer — Cat and BedroomScene are R3F children */}
+        <SceneCanvas phase={phase} weather={weather.current} hdrSrc={HDR_MAP[phase]}>
+          <Cat location={loc} phase={phase} season={season} weather={weather.current} />
+          {loc === "bedroom" && (
+            <BedroomScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
+          )}
         </SceneCanvas>
 
+        {/* CSS/SVG scenes render on top of the Canvas */}
         {loc === "house" && (
-
           <HouseScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
         )}
         {loc === "kitchen" && (
@@ -111,9 +121,6 @@ function World() {
         )}
         {loc === "dining" && (
           <DiningScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
-        )}
-        {loc === "bedroom" && (
-          <BedroomScene phase={phase} onOpen={(k) => setAddOpen({ kind: k })} onView={setViewing} />
         )}
         {loc === "garden" && (
           <GardenScene
@@ -156,8 +163,6 @@ function World() {
           />
         )}
       </div>
-
-      <Cat location={loc} phase={phase} season={season} weather={weather.current} />
 
       {/* Weather overlay */}
       {weather.current !== "clear" && (

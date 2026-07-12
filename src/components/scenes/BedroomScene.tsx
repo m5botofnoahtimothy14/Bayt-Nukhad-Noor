@@ -56,7 +56,7 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
   const { items } = useMemories("bedroom");
 
   const bedroomUrl = "/models/bedroom.glb";
-  const markerUrl = "/models/hotspot.glb";
+  const markerUrl = "/models/books/scene.gltf";
 
   const letterOn = phase === "night" || phase === "dusk";
 

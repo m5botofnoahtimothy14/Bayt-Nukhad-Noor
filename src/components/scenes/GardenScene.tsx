@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTimeOfDay, SKY, type TimePhase } from "@/hooks/useTimeOfDay";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { SEASON_PALETTE, type Season } from "@/hooks/useSeason";
+import { SceneModelOverlay, OutdoorCouchModel, PolytreeModel } from "@/components/models";
 
 type Props = {
   phase: TimePhase;
@@ -348,21 +349,11 @@ export function GardenScene({ phase, onAdd, onView, season = "spring" }: Props) 
         </svg>
       </div>
 
-      {/* Garden bench */}
+      {/* Garden bench - 3D model */}
       <div className="pointer-events-none absolute bottom-[32%] left-[15%] depth-layer depth-mid">
-        <svg width="100" height="55" viewBox="0 0 100 55" opacity="0.65">
-          {/* seat */}
-          <rect x="5" y="22" width="90" height="5" rx="2" fill="oklch(0.45 0.06 60)" />
-          {/* back */}
-          <rect x="5" y="10" width="90" height="3" rx="1.5" fill="oklch(0.48 0.05 58)" />
-          <rect x="5" y="16" width="90" height="3" rx="1.5" fill="oklch(0.48 0.05 58)" />
-          {/* legs */}
-          <rect x="10" y="27" width="4" height="24" rx="2" fill="oklch(0.40 0.07 55)" />
-          <rect x="86" y="27" width="4" height="24" rx="2" fill="oklch(0.40 0.07 55)" />
-          {/* arm rests */}
-          <rect x="3" y="22" width="4" height="14" rx="2" fill="oklch(0.42 0.06 58)" />
-          <rect x="93" y="22" width="4" height="14" rx="2" fill="oklch(0.42 0.06 58)" />
-        </svg>
+        <SceneModelOverlay>
+          <OutdoorCouchModel position={[0, -1, 0]} scale={0.3} rotation={[0, Math.PI / 8, 0]} />
+        </SceneModelOverlay>
       </div>
 
       {/* Water feature / fountain */}
@@ -423,6 +414,13 @@ export function GardenScene({ phase, onAdd, onView, season = "spring" }: Props) 
       <GardenTree x={95} season={season} flip />
       <GardenTree x={12} season={season} flip />
       <GardenTree x={88} season={season} />
+
+      {/* 3D Polytree */}
+      <div className="pointer-events-none absolute bottom-[35%] left-[45%] depth-layer depth-mid">
+        <SceneModelOverlay>
+          <PolytreeModel position={[0, -2, 0]} scale={0.6} />
+        </SceneModelOverlay>
+      </div>
 
       {/* Stone pathway */}
       <div className="pointer-events-none absolute inset-x-0 bottom-[10%] h-[25%] depth-layer depth-near">

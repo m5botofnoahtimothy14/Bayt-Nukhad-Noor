@@ -1,29 +1,32 @@
-# TODO
+# Task Progress
 
-## Phase 3 — Bedroom scene upgrade
-- [ ] Replace `src/components/scenes/BedroomScene.tsx` visuals with GLTF bedroom (placeholder asset paths `/models/bedroom.glb`).
-- [ ] Add real HDR lighting + wet/rain ambience for night/rain phases (material wetness + HDR hookup).
-- [ ] Keep interactive hotspots for memory/letter using true 3D raycast hit targets.
+## Phase 1: Organize 3D Assets ✅
+- [x] Copy telescope assets to public/models/telescope/
+- [x] Copy lantern assets to public/models/lantern/
+- [x] Copy polytree assets to public/models/polytree/
+- [x] Copy houseplants assets to public/models/houseplants/
+- [x] Copy outdoor-couch assets to public/models/outdoor-couch/
+- [x] Copy vinyl-player assets to public/models/vinyl-player/
 
-## Phase 4 — House / hall upgrade
-- [ ] Replace `src/components/scenes/HouseScene.tsx` visuals with GLTF hall/living room (placeholder asset paths `/models/house.glb`).
-- [ ] Implement interactive bookshelf + window using true 3D raycast hit targets.
-- [ ] Ensure rain is real and visibly affects wet materials when weather is rain.
+## Phase 2: Create 3D Model Components
+- [ ] Create GltfModel reusable component
+- [ ] Create TelescopeModel component
+- [ ] Create LanternModel component
+- [ ] Create PolytreeModel component
+- [ ] Create HouseplantModel component
+- [ ] Create OutdoorCouchModel component
+- [ ] Create VinylPlayerModel component
 
-## Shared 3D support
-- [ ] Add scene-level raycast/click handling utilities for GLTF-based hotspots.
+## Phase 3: Integrate 3D Models into Scenes
+- [ ] Integrate telescope + lantern + houseplants into BalconyScene
+- [ ] Integrate vinyl-player + houseplants into HouseScene
+- [ ] Integrate outdoor-couch + polytree into GardenScene
+- [ ] Integrate polytree into ForestScene
+- [ ] Integrate telescope into ObservatoryScene
 
-
-## Phase 3 — Bedroom scene upgrade
-- [ ] Replace `src/components/scenes/BedroomScene.tsx` visuals with GLTF bedroom (placeholder asset paths `/models/bedroom.glb`).
-- [ ] Add real HDR lighting + wet/rain ambience for night/rain phases (material wetness + HDR hookup).
-- [ ] Keep interactive hotspots for memory/letter using true 3D raycast hit targets.
-
-## Phase 4 — House / hall upgrade
-- [ ] Replace `src/components/scenes/HouseScene.tsx` visuals with GLTF hall/living room (placeholder asset paths `/models/house.glb`).
-- [ ] Implement interactive bookshelf + window using true 3D raycast hit targets.
-- [ ] Ensure rain is real and visibly affects wet materials when weather is rain.
-
-## Shared 3D support
-- [ ] Add scene-level raycast/click handling utilities for GLTF-based hotspots.
-
+## Phase 4: Clean Up & Fix Errors
+- [ ] Delete RaycastHotspots.tsx
+- [ ] Delete useRaycastHotspots.ts
+- [ ] Fix TS errors
+- [ ] Remove all references to deleted files
+- [ ] Verify build succeeds

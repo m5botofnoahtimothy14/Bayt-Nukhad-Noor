@@ -53,9 +53,7 @@ const LOCATION_MOODS: Record<string, Mood[]> = {
   bedroom: ["sleeping", "loafing", "idle"],
 };
 
-// NOTE: you must provide an actual cat GLTF in /public or import from assets.
-// For now we keep a placeholder path that you can replace.
-const CAT_GLTf_PATH = "/gltf/cat.glb";
+const CAT_GLTf_PATH = "/gltf/cat/scene.gltf";
 
 function nextMood(location: string, moods?: Mood[]): Mood {
   const list = moods && moods.length ? moods : LOCATION_MOODS[location] ?? ["idle"];

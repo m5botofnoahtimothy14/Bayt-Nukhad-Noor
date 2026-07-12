@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTimeOfDay, SKY, type TimePhase } from "@/hooks/useTimeOfDay";
 import { useMemories, type Memory } from "@/components/world/memories";
+import { SceneModelOverlay, VinylPlayerModel, HouseplantModel } from "@/components/models";
 
 type Props = {
   phase: TimePhase;
@@ -317,31 +318,15 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
 
       {/* === MUSIC CORNER (record player + speakers) === */}
       <div className="depth-layer depth-near absolute bottom-6 left-[5%] flex items-end gap-3">
-        {/* Record player */}
+        {/* Record player - 3D model */}
         <button
           onClick={() => onOpen("song")}
           title="record player — leave a song"
-          className="group flex h-24 w-32 items-center justify-center rounded-xl shadow-xl transition-all duration-300 hover:brightness-110 hover:scale-[1.06]"
-          style={{
-            background:
-              "linear-gradient(135deg, oklch(0.28 0.04 350), oklch(0.22 0.04 355))",
-          }}
+          className="group flex h-24 w-32 items-center justify-center rounded-xl shadow-xl transition-all duration-300 hover:brightness-110 hover:scale-[1.06] pointer-events-auto"
         >
-          <div
-            className="h-16 w-16 rounded-full shadow-inner"
-            style={{
-              background:
-                "radial-gradient(circle, oklch(0.60 0.14 25) 18%, oklch(0.10 0.02 350) 20%, oklch(0.13 0.02 355) 100%)",
-              animation: "spin 5s linear infinite",
-            }}
-          />
-          <div
-            className="absolute top-2 right-3 w-0.5 h-8 origin-top"
-            style={{
-              background: "oklch(0.45 0.04 350)",
-              transform: "rotate(25deg)",
-            }}
-          />
+          <SceneModelOverlay>
+            <VinylPlayerModel position={[0, -1.2, 0]} scale={0.4} rotation={[0, -Math.PI / 6, 0]} />
+          </SceneModelOverlay>
         </button>
         {/* Speaker */}
         <div
@@ -379,17 +364,11 @@ export function HouseScene({ phase, onOpen, onView }: Props) {
         )}
       </div>
 
-      {/* === INDOOR PLANT === */}
+      {/* === INDOOR PLANT - 3D model === */}
       <div className="depth-layer depth-near absolute bottom-0 right-[28%] pointer-events-none">
-        <svg width="50" height="70" viewBox="0 0 50 70">
-          <rect x="15" y="50" width="20" height="20" rx="3" fill="oklch(0.30 0.05 20)" />
-          <path d="M25 50 Q20 35 10 20" stroke="oklch(0.40 0.12 155)" strokeWidth="2" fill="none" style={{ animation: "sway 5s ease-in-out infinite" }} />
-          <path d="M25 50 Q30 30 40 18" stroke="oklch(0.42 0.12 150)" strokeWidth="2" fill="none" style={{ animation: "sway 6s ease-in-out 1s infinite" }} />
-          <path d="M25 50 Q25 30 25 15" stroke="oklch(0.38 0.10 148)" strokeWidth="2" fill="none" style={{ animation: "sway 4.5s ease-in-out 0.5s infinite" }} />
-          <ellipse cx="10" cy="18" rx="8" ry="5" fill="oklch(0.42 0.12 155)" style={{ animation: "sway 5s ease-in-out infinite", transformOrigin: "10px 22px" }} />
-          <ellipse cx="40" cy="16" rx="9" ry="5" fill="oklch(0.44 0.12 150)" style={{ animation: "sway 6s ease-in-out 1s infinite", transformOrigin: "40px 20px" }} />
-          <ellipse cx="25" cy="13" rx="7" ry="5" fill="oklch(0.40 0.10 148)" style={{ animation: "sway 4.5s ease-in-out 0.5s infinite", transformOrigin: "25px 18px" }} />
-        </svg>
+        <SceneModelOverlay>
+          <HouseplantModel position={[0, -1.5, 0]} scale={0.5} />
+        </SceneModelOverlay>
       </div>
 
       {/* Small rug */}

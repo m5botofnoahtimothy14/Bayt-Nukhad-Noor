@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { type Season } from "@/hooks/useSeason";
+import { SceneModelOverlay, PolytreeModel } from "@/components/models";
 
 type Props = {
   season?: Season;
@@ -789,6 +790,13 @@ export function ForestScene({ season = "summer", onAdd, onView }: Props) {
         {TREE_LAYOUT.filter((t) => t.depth <= 2).map((t, i) => (
           <Tree key={i} x={t.x} scale={t.scale} depth={t.depth} season={season} variant={t.variant} />
         ))}
+      </div>
+
+      {/* ── 3D Polytree ── */}
+      <div className="pointer-events-none absolute bottom-[10%] left-[50%] depth-layer depth-near">
+        <SceneModelOverlay>
+          <PolytreeModel position={[0, -2, 0]} scale={0.7} />
+        </SceneModelOverlay>
       </div>
 
       {/* ── Birds ── */}

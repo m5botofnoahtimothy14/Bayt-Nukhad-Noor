@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMemories, type Memory } from "@/components/world/memories";
+import { SceneModelOverlay, TelescopeModel, LanternModel, HouseplantModel } from "@/components/models";
 
 type Props = {
   onAdd: (p: { x: number; y: number }) => void;
@@ -156,63 +157,40 @@ export function BalconyScene({ onAdd, onView }: Props) {
           </svg>
         </div>
 
-        {/* Telescope */}
+        {/* Telescope - 3D model */}
         <button
           onClick={() => setTelescopeActive(!telescopeActive)}
-          className="depth-layer depth-near absolute bottom-[25%] right-[10%] transition-all duration-500 hover:scale-105"
+          className="depth-layer depth-near absolute bottom-[25%] right-[10%] transition-all duration-500 hover:scale-105 pointer-events-auto"
           title="Look through the telescope"
         >
-          <svg width="70" height="100" viewBox="0 0 70 100">
-            {/* Tripod legs */}
-            <line x1="35" y1="55" x2="10" y2="98" stroke="oklch(0.25 0.03 20)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="35" y1="55" x2="60" y2="98" stroke="oklch(0.25 0.03 20)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="35" y1="55" x2="35" y2="98" stroke="oklch(0.25 0.03 20)" strokeWidth="2" strokeLinecap="round" />
-            {/* Telescope body */}
-            <rect x="15" y="10" width="8" height="50" rx="3" fill="oklch(0.30 0.03 20)"
-              transform="rotate(-15 19 35)" />
-            {/* Lens */}
-            <circle cx="12" cy="8" r="6" fill="oklch(0.15 0.02 20)" stroke="oklch(0.40 0.04 55 / 40%)" strokeWidth="1" />
-            <circle cx="12" cy="8" r="3.5" fill="oklch(0.20 0.04 250 / 30%)" />
-            {/* Eyepiece */}
-            <rect x="20" y="52" width="6" height="8" rx="2" fill="oklch(0.22 0.03 18)" />
-            {/* Metal accents */}
-            <circle cx="19" cy="30" r="2" fill="oklch(0.50 0.06 55 / 40%)" />
-          </svg>
+          <SceneModelOverlay>
+            <TelescopeModel position={[0, -1.5, 0]} scale={0.8} />
+          </SceneModelOverlay>
         </button>
 
-        {/* Hanging lights */}
+        {/* 3D Lanterns */}
         {hangingLights.map((l, i) => (
           <div key={i} className="absolute pointer-events-none" style={{
             left: `${l.x}%`, top: `${l.y}%`,
             animation: `lantern-float ${l.dur}s ease-in-out ${i * 0.5}s infinite`,
           }}>
-            <div className="w-px h-8 mx-auto" style={{ background: "oklch(0.30 0.03 20 / 40%)" }} />
-            <div className="rounded-full mx-auto" style={{
-              width: l.size, height: l.size,
-              background: "radial-gradient(circle, oklch(0.90 0.12 55 / 80%), oklch(0.85 0.10 55 / 40%) 60%, transparent 100%)",
-              boxShadow: `0 0 ${l.size * 3}px oklch(0.88 0.10 55 / 30%)`,
-              animation: `breathe ${l.dur}s ease-in-out infinite`,
-            }} />
+            <SceneModelOverlay>
+              <LanternModel position={[0, 0, 0]} scale={0.3 + (i % 3) * 0.1} />
+            </SceneModelOverlay>
           </div>
         ))}
 
-        {/* Potted plants */}
+        {/* 3D Potted plants */}
         <div className="depth-layer depth-near absolute bottom-[15%] left-[8%] pointer-events-none">
-          <svg width="40" height="50" viewBox="0 0 40 50">
-            <rect x="10" y="35" width="20" height="15" rx="2" fill="oklch(0.35 0.06 10)" />
-            <path d="M20 35 Q15 25 8 15" stroke="oklch(0.40 0.12 155)" strokeWidth="2" fill="none" style={{ animation: "sway 5s ease-in-out infinite" }} />
-            <path d="M20 35 Q25 22 32 12" stroke="oklch(0.42 0.12 150)" strokeWidth="2" fill="none" style={{ animation: "sway 6s ease-in-out 1s infinite" }} />
-            <ellipse cx="8" cy="14" rx="6" ry="4" fill="oklch(0.42 0.12 155)" style={{ animation: "sway 5s ease-in-out infinite", transformOrigin: "8px 18px" }} />
-            <ellipse cx="32" cy="11" rx="7" ry="4" fill="oklch(0.44 0.12 150)" style={{ animation: "sway 6s ease-in-out 1s infinite", transformOrigin: "32px 15px" }} />
-          </svg>
+          <SceneModelOverlay>
+            <HouseplantModel position={[0, -1, 0]} scale={0.5} />
+          </SceneModelOverlay>
         </div>
 
         <div className="depth-layer depth-near absolute bottom-[15%] right-[8%] pointer-events-none">
-          <svg width="40" height="45" viewBox="0 0 40 45">
-            <rect x="12" y="30" width="16" height="15" rx="2" fill="oklch(0.32 0.05 355)" />
-            <path d="M20 30 Q18 20 12 10" stroke="oklch(0.42 0.10 148)" strokeWidth="2" fill="none" style={{ animation: "sway 5.5s ease-in-out infinite" }} />
-            <ellipse cx="12" cy="9" rx="5" ry="3.5" fill="oklch(0.42 0.10 148)" style={{ animation: "sway 5.5s ease-in-out infinite", transformOrigin: "12px 13px" }} />
-          </svg>
+          <SceneModelOverlay>
+            <HouseplantModel position={[0, -1, 0]} scale={0.4} rotation={[0, Math.PI / 4, 0]} />
+          </SceneModelOverlay>
         </div>
 
         {/* Telescope view overlay when active */}
