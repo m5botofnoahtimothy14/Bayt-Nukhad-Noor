@@ -26,65 +26,82 @@ const questionText =
     ? proposalText.slice(lastIdx)
     : "Khadija...\n\nWill u accept me...\n\nAs ur man.\n\nAs ur best friend.\n\nForever yours,\n\nNoah.";
 
-function HandwrittenText({
-  text,
-  speed = 30,
+function splitIntoParagraphs(text: string): string[] {
+  const blocks = text.split(/\n{2,}/);
+  return blocks
+    .map((b) => b.trim())
+    .filter((b) => b.length > 0);
+}
+
+function FadeInText({
+  paragraphs,
+  speed = 1200,
   onComplete,
   onProgress,
   className = "",
   style,
 }: {
-  text: string;
+  paragraphs: string[];
   speed?: number;
   onComplete?: () => void;
   onProgress?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const [visibleLength, setVisibleLength] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const chars = useRef([...text]);
+  const [visibleCount, setVisibleCount] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const onCompleteRef = useRef(onComplete);
+  const onProgressRef = useRef(onProgress);
+  onCompleteRef.current = onComplete;
+  onProgressRef.current = onProgress;
 
   useEffect(() => {
-    setVisibleLength(0);
+    setVisibleCount(0);
     let idx = 0;
-    const tick = () => {
+
+    const showNext = () => {
       idx++;
-      setVisibleLength(idx);
-      onProgress?.();
-      if (idx >= chars.current.length) {
-        onComplete?.();
+      setVisibleCount(idx);
+      onProgressRef.current?.();
+
+      if (idx >= paragraphs.length) {
+        timerRef.current = setTimeout(() => {
+          onCompleteRef.current?.();
+        }, speed * 0.6);
         return;
       }
-      const ch = chars.current[idx];
-      // Newlines render instantly, blank lines get a short pause
-      const delay = ch === "\n" ? 15 : speed;
-      timerRef.current = setTimeout(tick, delay);
-    };
-    timerRef.current = setTimeout(tick, speed);
-    return () => clearTimeout(timerRef.current);
-  }, [text, speed, onComplete, onProgress]);
 
-  const visibleText = chars.current.slice(0, visibleLength).join("");
-  const lines = visibleText.split("\n");
+      timerRef.current = setTimeout(showNext, speed);
+    };
+
+    timerRef.current = setTimeout(showNext, speed * 0.5);
+
+    return () => {
+      clearTimeout(timerRef.current);
+    };
+  }, [paragraphs, speed]);
 
   return (
     <div className={className} style={style}>
-      {lines.map((line, i) => (
-        <span key={i}>
-          {line}
-          {i < lines.length - 1 && <br />}
-        </span>
-      ))}
-      {visibleLength < chars.current.length && (
-        <span
-          className="inline-block w-[2px] h-[1em] ml-1 align-middle"
-          style={{
-            backgroundColor: "oklch(0.3 0.08 30)",
-            animation: "blink-cursor 0.8s step-end infinite",
+      {paragraphs.slice(0, visibleCount).map((para, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: speed / 1000 * 0.8,
+            ease: [0.22, 1, 0.36, 1],
           }}
-        />
-      )}
+          style={{ marginBottom: "1.4em" }}
+        >
+          {para.split("\n").map((line, j) => (
+            <span key={j}>
+              {line}
+              {j < para.split("\n").length - 1 && <br />}
+            </span>
+          ))}
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -100,6 +117,9 @@ export function ParchmentOverlay({
   const isOpening = phase === "opening";
   const isWriting = phase === "writing";
   const isFinal = phase === "final";
+
+  const bodyParagraphs = useRef(splitIntoParagraphs(bodyText)).current;
+  const questionParagraphs = useRef(splitIntoParagraphs(questionText)).current;
 
   // Auto-scroll the parchment as new text appears
   const autoScroll = useCallback(() => {
@@ -175,7 +195,12 @@ export function ParchmentOverlay({
 
               {/* Calligraphic "Khadija..." heading */}
               {(isWriting || isFinal) && (
-                <div className="text-center mb-6">
+                <motion.div
+                  className="text-center mb-6"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                >
                   <span
                     className="proposal-heading"
                     style={{
@@ -185,17 +210,17 @@ export function ParchmentOverlay({
                   >
                     Khadija...
                   </span>
-                </div>
+                </motion.div>
               )}
 
-              {/* Body text */}
+              {/* Body text — fade-in paragraphs */}
               {(isWriting || isFinal) && (
-                <HandwrittenText
-                  text={bodyText}
-                  speed={18}
+                <FadeInText
+                  paragraphs={bodyParagraphs}
+                  speed={1200}
                   onComplete={onWritingComplete}
                   onProgress={autoScroll}
-                  className="proposal-text leading-[2.2] text-center whitespace-pre-line"
+                  className="proposal-text leading-[2.2] text-center"
                   style={{
                     color: "oklch(0.28 0.08 30)",
                     fontSize: "clamp(0.95rem, 2.8vw, 1.2rem)",
@@ -207,15 +232,21 @@ export function ParchmentOverlay({
               {/* Final question */}
               {isFinal && (
                 <div className="mt-8">
-                  <div className="text-center mb-4 opacity-25" style={{ color: "oklch(0.5 0.08 60)" }}>
+                  <motion.div
+                    className="text-center mb-4 opacity-25"
+                    style={{ color: "oklch(0.5 0.08 60)" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.25 }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                  >
                     — ✦ —
-                  </div>
-                  <HandwrittenText
-                    text={questionText}
-                    speed={40}
+                  </motion.div>
+                  <FadeInText
+                    paragraphs={questionParagraphs}
+                    speed={1600}
                     onComplete={onFinalComplete}
                     onProgress={autoScroll}
-                    className="proposal-text leading-[2.4] text-center whitespace-pre-line"
+                    className="proposal-text leading-[2.4] text-center"
                     style={{
                       color: "oklch(0.22 0.1 25)",
                       fontSize: "clamp(1rem, 3vw, 1.35rem)",

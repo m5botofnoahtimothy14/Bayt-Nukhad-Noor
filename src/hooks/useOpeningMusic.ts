@@ -4,10 +4,11 @@ import { SONGS, OPENING_MUSIC } from "@/lib/musicCatalog";
 
 /**
  * useOpeningMusic — plays sacred music during the Bayt Nukhad Noor intro.
- * Fades in slowly with the meaning reveal, continues into proposal.
+ * Goodness Of God first, then crossfades into Canon in D.
  */
 export function useOpeningMusic(active: boolean) {
   const started = useRef(false);
+  const crossfadeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (!active) return;
@@ -15,15 +16,28 @@ export function useOpeningMusic(active: boolean) {
     const timer = setTimeout(() => {
       if (!started.current) {
         started.current = true;
+        // First song — Goodness Of God (sacred entrance)
         playSong(SONGS[OPENING_MUSIC.songs[0]], {
-          fadeInMs: 6000, // Very slow, sacred fade-in
+          fadeInMs: 6000,
           volume: OPENING_MUSIC.volume,
-          loop: true,
+          loop: false,
         });
+
+        // Crossfade to Canon in D after ~22s (let Goodness Of God breathe)
+        crossfadeTimer.current = setTimeout(() => {
+          playSong(SONGS[OPENING_MUSIC.songs[1]], {
+            fadeInMs: OPENING_MUSIC.crossfadeMs,
+            volume: OPENING_MUSIC.volume,
+            loop: true,
+          });
+        }, 22000);
       }
     }, OPENING_MUSIC.entryDelayMs);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (crossfadeTimer.current) clearTimeout(crossfadeTimer.current);
+    };
   }, [active]);
 
   // Fade out when leaving opening

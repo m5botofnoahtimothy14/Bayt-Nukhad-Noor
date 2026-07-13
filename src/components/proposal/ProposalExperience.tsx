@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useProposalSequence, type ProposalPhase } from "@/hooks/useProposalSequence";
+import { useProposalSequence } from "@/hooks/useProposalSequence";
 import { useProposalAudio } from "@/hooks/useProposalAudio";
 import { ProposalScene } from "./ProposalScene";
 import { ParchmentOverlay } from "./ParchmentOverlay";
@@ -110,19 +110,25 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
 
   const audio = useProposalAudio();
 
-  // Audio cues — cinematic music progression
+  // Music cues — cinematic music progression with proper crossfades
   useEffect(() => {
     if (phase === "darkness") {
-      audio.playAmbience(); // dreamy background
+      audio.playAmbience(); // My Love Mine All Mine — dreamy, carries through
     }
     if (phase === "candle-walk") {
-      audio.playPiano(); // elegant piano for the walk
+      audio.playPiano(); // Clair de Lune — elegant piano for the walk
     }
     if (phase === "room-awakens") {
-      audio.playStrings(); // swell
+      audio.playStrings(); // Canon in D — orchestral swell
+    }
+    if (phase === "scroll-opening" || phase === "scroll-idle" || phase === "proposal-text") {
+      audio.playReading(); // My Love Mine All Mine — back to dreamy for the letter
+    }
+    if (phase === "final-question" || phase === "choice") {
+      audio.playEmotional(); // Jo Tum Mere Ho — emotional build before climax
     }
     if (phase === "yes-path" || phase === "welcome-text") {
-      audio.playClimax(); // romantic Bollywood climax — "Kesariya"
+      audio.playClimax(); // Kesariya — romantic Bollywood climax
     }
   }, [phase, audio]);
 
@@ -158,6 +164,13 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
         ? 0.7
         : brightness;
 
+  // 3D scroll opening + sparkles
+  const scrollOpening = phase === "scroll-opening";
+  const sparklesActive = phase === "stage-reveal" || phase === "scroll-idle" ||
+    phase === "scroll-opening" || phase === "proposal-text" ||
+    phase === "final-question" || phase === "choice" ||
+    phase === "yes-path" || phase === "welcome-text";
+
   return (
     <motion.div
       className="fixed inset-0 z-50 bg-black"
@@ -175,6 +188,8 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
         heartsActive={heartsActive}
         cameraShake={cameraShake}
         brightness={finalBrightness}
+        scrollOpening={scrollOpening}
+        sparklesActive={sparklesActive}
         onScrollClick={handleScrollClick}
       />
 

@@ -37,12 +37,10 @@ function Rose({
 
   return (
     <group ref={ref} position={position} scale={scale}>
-      {/* Stem */}
       <mesh>
         <cylinderGeometry args={[0.004, 0.005, 0.14, 6]} />
         <meshStandardMaterial color="#3a6a3a" roughness={0.8} />
       </mesh>
-      {/* Leaves on stem */}
       <mesh position={[0.012, -0.02, 0]} rotation={[0, 0, 0.4]}>
         <boxGeometry args={[0.025, 0.008, 0.003]} />
         <meshStandardMaterial color="#4a7a4a" roughness={0.7} />
@@ -51,7 +49,6 @@ function Rose({
         <boxGeometry args={[0.02, 0.007, 0.003]} />
         <meshStandardMaterial color="#3a6a3a" roughness={0.7} />
       </mesh>
-      {/* Rose bloom — layered petals */}
       {petals.map((p, i) => (
         <mesh
           key={i}
@@ -66,7 +63,6 @@ function Rose({
           <meshStandardMaterial color={color} roughness={0.45} />
         </mesh>
       ))}
-      {/* Center bud */}
       <mesh position={[0, 0.085, 0]}>
         <sphereGeometry args={[0.01, 10, 10]} />
         <meshStandardMaterial color={color} roughness={0.4} />
@@ -80,26 +76,166 @@ function FairyLight({ position, index }: { position: [number, number, number]; i
 
   useFrame(({ clock }) => {
     if (ref.current) {
-      ref.current.intensity = 0.35 + Math.sin(clock.getElapsedTime() * 2.5 + index * 0.8) * 0.12;
+      ref.current.intensity = 0.18 + Math.sin(clock.getElapsedTime() * 2.5 + index * 0.8) * 0.06;
     }
   });
 
   return (
     <group position={position}>
       <mesh>
-        <sphereGeometry args={[0.012, 8, 8]} />
-        <meshBasicMaterial color="#ffeeaa" transparent opacity={0.85} />
+        <sphereGeometry args={[0.008, 6, 6]} />
+        <meshBasicMaterial color="#fff8ee" transparent opacity={0.7} />
       </mesh>
-      <pointLight ref={ref} color={0xffeeaa} intensity={0.35} distance={1.2} decay={2} />
+      <pointLight ref={ref} color={0xfff5ee} intensity={0.18} distance={0.8} decay={2} />
     </group>
   );
 }
 
-function Scroll({ onClick, visible }: { onClick: () => void; visible?: boolean }) {
-  const ref = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.PointLight>(null);
+/* ─── Floating Lantern (like the opening scene) ─── */
+function FloatingLantern({
+  position,
+  color,
+  intensity = 3,
+  delay = 0,
+}: {
+  position: [number, number, number];
+  color: string;
+  intensity?: number;
+  delay?: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
+  const baseY = position[1];
 
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() + delay;
+    if (groupRef.current) {
+      groupRef.current.position.y = baseY + Math.sin(t * 0.6) * 0.15;
+      groupRef.current.rotation.z = Math.sin(t * 0.4) * 0.04;
+    }
+    if (lightRef.current) {
+      lightRef.current.intensity = intensity + Math.sin(t * 3) * 0.8;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      {/* Glowing orb */}
+      <mesh>
+        <sphereGeometry args={[0.06, 12, 12]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={1.5}
+          transparent
+          opacity={0.9}
+          roughness={0.2}
+        />
+      </mesh>
+      {/* Metal cap top */}
+      <mesh position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.025, 0.04, 0.03, 8]} />
+        <meshStandardMaterial color="#8a7a60" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Metal cap bottom */}
+      <mesh position={[0, -0.06, 0]}>
+        <cylinderGeometry args={[0.04, 0.025, 0.02, 8]} />
+        <meshStandardMaterial color="#8a7a60" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Hanging wire */}
+      <mesh position={[0, 0.1, 0]}>
+        <cylinderGeometry args={[0.002, 0.002, 0.08, 3]} />
+        <meshStandardMaterial color="#6a6050" roughness={0.5} />
+      </mesh>
+      {/* Point light */}
+      <pointLight ref={lightRef} color={color} intensity={intensity} distance={4} decay={2} />
+    </group>
+  );
+}
+
+/* ─── Stage Sparkle particles ─── */
+function StageSparkles({ active = false }: { active?: boolean }) {
+  if (!active) return null;
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 40 }).map(() => ({
+        x: (Math.random() - 0.5) * 5,
+        y: 0.5 + Math.random() * 3.5,
+        z: (Math.random() - 0.5) * 5 - 2,
+        speed: 0.1 + Math.random() * 0.2,
+        phase: Math.random() * Math.PI * 2,
+        life: Math.random() * 5,
+        maxLife: 3 + Math.random() * 4,
+        scale: 0.008 + Math.random() * 0.012,
+      })),
+    [],
+  );
+
+  useFrame(({ clock }, dt) => {
+    if (!ref.current || !active) return;
+    const t = clock.getElapsedTime();
+    const dummy = new THREE.Object3D();
+    const color = new THREE.Color();
+    particles.forEach((p, i) => {
+      p.life += dt;
+      if (p.life > p.maxLife) {
+        p.life = 0;
+        p.x = (Math.random() - 0.5) * 5;
+        p.y = 0.5 + Math.random() * 3.5;
+        p.z = (Math.random() - 0.5) * 5 - 2;
+      }
+      const progress = p.life / p.maxLife;
+      const fadeIn = Math.min(progress * 4, 1);
+      const fadeOut = Math.max(1 - (progress - 0.75) / 0.25, 0);
+      const opacity = fadeIn * (progress > 0.75 ? fadeOut : 1);
+      dummy.position.set(
+        p.x + Math.sin(t * p.speed + p.phase) * 0.3,
+        p.y + Math.sin(t * p.speed * 0.4 + p.phase) * 0.2,
+        p.z + Math.cos(t * p.speed * 0.5 + p.phase) * 0.2,
+      );
+      const s = p.scale * opacity * 80;
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      ref.current!.setMatrixAt(i, dummy.matrix);
+      const warmGold = 0.7 + Math.sin(i * 0.8) * 0.3;
+      color.setRGB(1, 0.9 * warmGold, 0.6 * warmGold);
+      ref.current!.setColorAt(i, color);
+    });
+    ref.current.instanceMatrix.needsUpdate = true;
+    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, 40]} frustumCulled={false}>
+      <sphereGeometry args={[0.05, 4, 4]} />
+      <meshBasicMaterial color="#ffe8a0" transparent opacity={0.6} />
+    </instancedMesh>
+  );
+}
+
+/* ─── Scroll with bloom-open animation ─── */
+function Scroll({
+  onClick,
+  visible,
+  opening,
+}: {
+  onClick: () => void;
+  visible?: boolean;
+  opening?: boolean;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const glowRef = useRef<THREE.PointLight>(null);
+  const ribbonRef = useRef<THREE.Group>(null);
+  const bowRef = useRef<THREE.Group>(null);
+  const parchmentLeftRef = useRef<THREE.Mesh>(null);
+  const parchmentRightRef = useRef<THREE.Mesh>(null);
+  const capLeftRef = useRef<THREE.Mesh>(null);
+  const capRightRef = useRef<THREE.Mesh>(null);
+  const burstRef = useRef<THREE.PointLight>(null);
+  const openTime = useRef(0);
+
+  useFrame(({ clock }, dt) => {
     const t = clock.getElapsedTime();
     if (ref.current) {
       ref.current.position.y = 1.1 + Math.sin(t * 1.2) * 0.012;
@@ -108,49 +244,99 @@ function Scroll({ onClick, visible }: { onClick: () => void; visible?: boolean }
     if (glowRef.current) {
       glowRef.current.intensity = 1.0 + Math.sin(t * 2) * 0.4;
     }
+
+    if (opening) {
+      openTime.current = Math.min(openTime.current + dt, 1.8);
+      const p = openTime.current / 1.8;
+      const ease = 1 - Math.pow(1 - p, 3);
+
+      // Ribbon unties — shrinks away
+      if (ribbonRef.current) {
+        ribbonRef.current.scale.setScalar(1 - ease);
+        ribbonRef.current.rotation.y = ease * 2;
+      }
+      // Bow shrinks and floats up
+      if (bowRef.current) {
+        bowRef.current.scale.setScalar(Math.max(0, 1 - ease * 1.5));
+        bowRef.current.position.y = 0.12 + ease * 0.2;
+      }
+      // Parchment splits open — left half moves left, right half moves right
+      if (parchmentLeftRef.current) {
+        parchmentLeftRef.current.position.x = -ease * 0.5;
+        parchmentLeftRef.current.rotation.z = ease * 0.3;
+      }
+      if (parchmentRightRef.current) {
+        parchmentRightRef.current.position.x = ease * 0.5;
+        parchmentRightRef.current.rotation.z = -ease * 0.3;
+      }
+      // End caps follow
+      if (capLeftRef.current) {
+        capLeftRef.current.position.x = -0.45 - ease * 0.5;
+      }
+      if (capRightRef.current) {
+        capRightRef.current.position.x = 0.45 + ease * 0.5;
+      }
+      // Light burst during opening
+      if (burstRef.current) {
+        const burstIntensity = ease < 0.5
+          ? ease * 2 * 8
+          : (1 - ease) * 2 * 8;
+        burstRef.current.intensity = burstIntensity;
+      }
+    }
   });
 
   const opacity = visible !== false ? 1 : 0.85;
 
   return (
-    <group ref={ref} position={[0, 1.1, -1]} onClick={onClick}>
-      {/* Parchment roll — large and visible */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.12, 0.12, 0.9, 20]} />
+    <group ref={ref} position={[0, 1.1, -1]} onClick={opening ? undefined : onClick}>
+      {/* Parchment roll — splits into two halves */}
+      <mesh
+        ref={parchmentLeftRef}
+        rotation={[0, 0, Math.PI / 2]}
+        position={[0, 0, 0]}
+      >
+        <cylinderGeometry args={[0.12, 0.12, 0.45, 20]} />
+        <meshStandardMaterial color="#e8d8b8" roughness={0.55} transparent opacity={opacity} />
+      </mesh>
+      <mesh
+        ref={parchmentRightRef}
+        rotation={[0, 0, Math.PI / 2]}
+        position={[0, 0, 0]}
+      >
+        <cylinderGeometry args={[0.12, 0.12, 0.45, 20]} />
         <meshStandardMaterial color="#e8d8b8" roughness={0.55} transparent opacity={opacity} />
       </mesh>
       {/* End caps */}
-      <mesh position={[-0.45, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh ref={capLeftRef} position={[-0.45, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
         <circleGeometry args={[0.12, 20]} />
         <meshStandardMaterial color="#d8c8a8" roughness={0.65} />
       </mesh>
-      <mesh position={[0.45, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
+      <mesh ref={capRightRef} position={[0.45, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
         <circleGeometry args={[0.12, 20]} />
         <meshStandardMaterial color="#d8c8a8" roughness={0.65} />
       </mesh>
       {/* Burgundy ribbon wrap */}
-      <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <torusGeometry args={[0.14, 0.018, 8, 32]} />
-        <meshStandardMaterial color="#6a1a2a" roughness={0.35} />
-      </mesh>
+      <group ref={ribbonRef}>
+        <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <torusGeometry args={[0.14, 0.018, 8, 32]} />
+          <meshStandardMaterial color="#6a1a2a" roughness={0.35} />
+        </mesh>
+      </group>
       {/* Ribbon bow — two loops + tails */}
-      <group position={[0, 0.12, 0]}>
-        {/* Left loop */}
+      <group ref={bowRef} position={[0, 0.12, 0]}>
         <mesh position={[-0.035, 0, 0]} rotation={[0.3, 0, 0.2]}>
           <torusGeometry args={[0.03, 0.008, 8, 12]} />
           <meshStandardMaterial color="#6a1a2a" roughness={0.35} />
         </mesh>
-        {/* Right loop */}
         <mesh position={[0.035, 0, 0]} rotation={[0.3, 0, -0.2]}>
           <torusGeometry args={[0.03, 0.008, 8, 12]} />
           <meshStandardMaterial color="#6a1a2a" roughness={0.35} />
         </mesh>
-        {/* Center knot */}
         <mesh position={[0, 0, 0]}>
           <sphereGeometry args={[0.015, 8, 8]} />
           <meshStandardMaterial color="#5a1525" roughness={0.4} />
         </mesh>
-        {/* Tails */}
         <mesh position={[-0.02, -0.04, 0]} rotation={[0, 0, 0.3]}>
           <cylinderGeometry args={[0.006, 0.003, 0.06, 4]} />
           <meshStandardMaterial color="#6a1a2a" roughness={0.35} />
@@ -161,7 +347,11 @@ function Scroll({ onClick, visible }: { onClick: () => void; visible?: boolean }
         </mesh>
       </group>
       {/* Warm glow to draw the eye */}
-      <pointLight ref={glowRef} color={0xffcc88} intensity={1.0} distance={3} decay={2} />
+      <pointLight ref={glowRef} color={0xfff0d8} intensity={1.2} distance={3} decay={2} />
+      {/* Light burst during bloom-open */}
+      {opening && (
+        <pointLight ref={burstRef} color={0xfff5e0} intensity={0} distance={6} decay={1} />
+      )}
     </group>
   );
 }
@@ -193,7 +383,15 @@ function BabyBreathCluster({ position }: { position: [number, number, number] })
   );
 }
 
-export function StageArea({ onScrollClick }: { onScrollClick: () => void }) {
+export function StageArea({
+  onScrollClick,
+  scrollOpening = false,
+  sparklesActive = false,
+}: {
+  onScrollClick: () => void;
+  scrollOpening?: boolean;
+  sparklesActive?: boolean;
+}) {
   const babyBreathPositions = useMemo(() =>
     Array.from({ length: 6 }).map((_, i) => {
       const angle = (i / 6) * Math.PI * 2 + 0.5;
@@ -233,12 +431,14 @@ export function StageArea({ onScrollClick }: { onScrollClick: () => void }) {
           <cylinderGeometry args={[0.18, 0.14, 0.04, 16]} />
           <meshStandardMaterial color="#5a4030" roughness={0.65} />
         </mesh>
-        {/* Pedestal base */}
         <mesh position={[0, -0.01, 0]}>
           <cylinderGeometry args={[0.2, 0.2, 0.02, 16]} />
           <meshStandardMaterial color="#4a3525" roughness={0.75} />
         </mesh>
-        <Scroll onClick={onScrollClick} />
+        <Scroll
+          onClick={onScrollClick}
+          opening={scrollOpening}
+        />
       </group>
 
       {/* Flowers around stage — roses */}
@@ -287,15 +487,88 @@ export function StageArea({ onScrollClick }: { onScrollClick: () => void }) {
         );
       })}
 
-      {/* Spotlight on stage */}
+      {/* Floating lanterns — warm wedding glow */}
+      <FloatingLantern position={[-2.2, 2.8, 0.5]} color="#ffd88a" intensity={2.5} delay={0} />
+      <FloatingLantern position={[2.0, 3.2, -1]} color="#ffe0a0" intensity={2.0} delay={1.5} />
+      <FloatingLantern position={[-1.5, 3.5, -2.5]} color="#ffc860" intensity={2.2} delay={3.0} />
+      <FloatingLantern position={[1.8, 2.6, 1]} color="#ffe8b0" intensity={1.8} delay={4.5} />
+
+      {/* Stage sparkles */}
+      <StageSparkles active={sparklesActive} />
+
+      {/* === Wedding venue lighting rig === */}
+
+      {/* Key light — main front-left spot, warm white, tight beam on stage center */}
       <spotLight
-        position={[0, 5, -2]}
-        target-position={[0, 0, -4]}
-        angle={0.3}
-        penumbra={0.8}
-        intensity={1.8}
-        color="#ffeecc"
+        position={[-2.5, 5.5, 2]}
+        target-position={[0, 0, 0]}
+        angle={0.25}
+        penumbra={0.7}
+        intensity={3.5}
+        color="#fff5e8"
         castShadow
+        shadow-bias={-0.001}
+      />
+
+      {/* Fill light — front-right, slightly cooler, wider softer beam */}
+      <spotLight
+        position={[3, 4.5, 1.5]}
+        target-position={[0, 0, 0]}
+        angle={0.35}
+        penumbra={0.85}
+        intensity={1.8}
+        color="#f0eeff"
+      />
+
+      {/* Back/rim light — behind and above, warm gold for dramatic edge definition */}
+      <spotLight
+        position={[0.5, 5, -5]}
+        target-position={[0, 0, 0]}
+        angle={0.3}
+        penumbra={0.75}
+        intensity={2.2}
+        color="#ffddb8"
+        castShadow
+      />
+
+      {/* Stage wash left — overhead, wide soft pool of light on the marble */}
+      <spotLight
+        position={[-1.5, 4, -1]}
+        target-position={[-1, 0, 0]}
+        angle={0.5}
+        penumbra={1.0}
+        intensity={1.2}
+        color="#fff8f0"
+      />
+
+      {/* Stage wash right — overhead, wide soft pool of light on the marble */}
+      <spotLight
+        position={[1.5, 4, -1]}
+        target-position={[1, 0, 0]}
+        angle={0.5}
+        penumbra={1.0}
+        intensity={1.2}
+        color="#fff8f0"
+      />
+
+      {/* Pedestal accent spot — tight focused beam on the scroll */}
+      <spotLight
+        position={[0, 3.5, -0.5]}
+        target-position={[0, 0, -1]}
+        angle={0.15}
+        penumbra={0.6}
+        intensity={2.5}
+        color="#fff5e0"
+        castShadow
+      />
+
+      {/* Subtle downlight for stage floor fill */}
+      <pointLight
+        position={[0, 2.5, 0]}
+        color="#fff8f0"
+        intensity={1.5}
+        distance={5}
+        decay={2}
       />
     </group>
   );

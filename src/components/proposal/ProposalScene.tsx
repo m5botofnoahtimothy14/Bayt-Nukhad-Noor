@@ -30,6 +30,10 @@ type ProposalSceneProps = {
   cameraShake: number;
   /** overall scene brightness multiplier 0–1 */
   brightness: number;
+  /** scroll opening animation playing */
+  scrollOpening: boolean;
+  /** sparkles active around stage */
+  sparklesActive: boolean;
   onScrollClick: () => void;
 };
 
@@ -116,6 +120,8 @@ export function ProposalScene({
   heartsActive,
   cameraShake,
   brightness,
+  scrollOpening,
+  sparklesActive,
   onScrollClick,
 }: ProposalSceneProps) {
   return (
@@ -125,24 +131,35 @@ export function ProposalScene({
         antialias: true,
         alpha: false,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 0.3 + brightness * 1.2,
+        toneMappingExposure: 0.5 + brightness * 1.0,
       }}
       dpr={[1, 1.5]}
       shadows
       className="!absolute inset-0"
     >
       <color attach="background" args={["#050508"]} />
-      <fog attach="fog" args={["#050508", 4, 18]} />
+      <fog attach="fog" args={["#050508", 6, 22]} />
 
       <CameraRig walkProgress={walkProgress} shake={cameraShake} />
 
-      {/* Very dim ambient — starts near zero */}
-      <ambientLight intensity={0.02 + brightness * 0.08} color="#ffeecc" />
+      {/* Slightly brighter ambient for base fill */}
+      <ambientLight intensity={0.06 + brightness * 0.12} color="#f0eeff" />
+
+      {/* Directional key — subtle overall fill from above-front */}
+      <directionalLight
+        position={[2, 6, 4]}
+        intensity={0.3 + brightness * 0.4}
+        color="#fff8f0"
+      />
 
       <StarCeiling />
       <MarbleFloor />
       <CandlePath ignitedCount={candlesLit} totalCandles={24} />
-      <StageArea onScrollClick={onScrollClick} />
+      <StageArea
+        onScrollClick={onScrollClick}
+        scrollOpening={scrollOpening}
+        sparklesActive={sparklesActive}
+      />
 
       {/* Particles */}
       <CherryBlossoms active={blossomsActive} count={80} />
@@ -152,13 +169,13 @@ export function ProposalScene({
 
       <EffectComposer multisampling={0}>
         <Bloom
-          intensity={0.6 + brightness * 0.5}
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.4}
-          kernelSize={KernelSize.LARGE}
+          intensity={0.35 + brightness * 0.3}
+          luminanceThreshold={0.55}
+          luminanceSmoothing={0.3}
+          kernelSize={KernelSize.MEDIUM}
           mipmapBlur
         />
-        <Vignette eskil={false} offset={0.3} darkness={0.9} />
+        <Vignette eskil={false} offset={0.35} darkness={0.75} />
       </EffectComposer>
     </Canvas>
   );

@@ -36,25 +36,29 @@ export type SceneMusicProfile = {
   entryDelayMs: number;
 };
 
-/** Opening scene music — sacred, slow reveal */
+/** Opening scene music — sacred entrance, crossfades from Goodness Of God into Canon in D */
 export const OPENING_MUSIC: SceneMusicProfile = {
-  songs: ["goodnessOfGod"],
-  crossfadeMs: 4000,
+  songs: ["goodnessOfGod", "canonInD"],
+  crossfadeMs: 5000,
   volume: 0.25,
   entryDelayMs: 2000,
 };
 
-/** Proposal scene music — emotional, cinematic */
+/** Proposal scene music — emotional, cinematic, multi-phase */
 export const PROPOSAL_MUSIC: {
   ambience: SongKey;
   piano: SongKey;
   strings: SongKey;
+  reading: SongKey;
+  emotional: SongKey;
   climax: SongKey;
   volume: number;
 } = {
   ambience: "myLoveMineAllMine",
   piano: "clairDeLune",
   strings: "canonInD",
+  reading: "myLoveMineAllMine",
+  emotional: "joTumMereHo",
   climax: "kesariya",
   volume: 0.3,
 };
@@ -69,70 +73,70 @@ export const VINYL_TRACKS: { key: SongKey; title: string }[] = [
   { key: "canonInD", title: "Canon in D" },
 ];
 
-/** Room scene music — 2 songs per room, crossfading */
+/** Room scene music — multiple songs per room, continuous crossfade shuffle */
 export const SCENE_MUSIC: Record<string, SceneMusicProfile> = {
   house: {
-    songs: ["joTumMereHo", "carryYouHome"],
+    songs: ["joTumMereHo", "carryYouHome", "myLoveMineAllMine", "stargazing"],
     crossfadeMs: 5000,
     volume: 0.22,
     entryDelayMs: 1500,
   },
   kitchen: {
-    songs: ["tumHiHo", "harleysInHawaii"],
+    songs: ["tumHiHo", "harleysInHawaii", "joTumMereHo", "stargazing"],
     crossfadeMs: 4000,
     volume: 0.2,
     entryDelayMs: 1000,
   },
   dining: {
-    songs: ["kalHoNaaHo", "canonInD"],
+    songs: ["kalHoNaaHo", "canonInD", "comptine", "nuvoleBianche"],
     crossfadeMs: 6000,
     volume: 0.2,
     entryDelayMs: 1500,
   },
   bedroom: {
-    songs: ["riverFlowsInYou", "clairDeLune"],
+    songs: ["riverFlowsInYou", "clairDeLune", "nuvoleBianche", "moonlightSonata"],
     crossfadeMs: 7000,
     volume: 0.18,
     entryDelayMs: 2000,
   },
   garden: {
-    songs: ["kesariya", "myLoveMineAllMine"],
+    songs: ["kesariya", "myLoveMineAllMine", "carryYouHome", "joTumMereHo"],
     crossfadeMs: 5000,
     volume: 0.22,
     entryDelayMs: 1500,
   },
   balcony: {
-    songs: ["stargazing", "nuvoleBianche"],
+    songs: ["stargazing", "nuvoleBianche", "riverFlowsInYou", "clairDeLune"],
     crossfadeMs: 6000,
     volume: 0.2,
     entryDelayMs: 2000,
   },
   observatory: {
-    songs: ["stargazing", "myLoveMineAllMine"],
+    songs: ["stargazing", "myLoveMineAllMine", "moonlightSonata", "nuvoleBianche"],
     crossfadeMs: 7000,
     volume: 0.18,
     entryDelayMs: 2500,
   },
   lake: {
-    songs: ["clairDeLune", "riverFlowsInYou"],
+    songs: ["clairDeLune", "riverFlowsInYou", "comptine", "nuvoleBianche"],
     crossfadeMs: 7000,
     volume: 0.2,
     entryDelayMs: 2000,
   },
   forest: {
-    songs: ["moonlightSonata", "nuvoleBianche"],
+    songs: ["moonlightSonata", "nuvoleBianche", "riverFlowsInYou", "comptine"],
     crossfadeMs: 6000,
     volume: 0.2,
     entryDelayMs: 2000,
   },
   meadow: {
-    songs: ["canonInD", "carryYouHome"],
+    songs: ["canonInD", "carryYouHome", "myLoveMineAllMine", "joTumMereHo"],
     crossfadeMs: 5000,
     volume: 0.22,
     entryDelayMs: 1500,
   },
   memories: {
-    songs: ["comptine", "riverFlowsInYou"],
+    songs: ["comptine", "riverFlowsInYou", "clairDeLune", "nuvoleBianche"],
     crossfadeMs: 6000,
     volume: 0.2,
     entryDelayMs: 2000,

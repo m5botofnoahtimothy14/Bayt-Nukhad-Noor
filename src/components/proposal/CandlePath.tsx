@@ -50,7 +50,7 @@ function Candle({
             <sphereGeometry args={[0.018, 6, 6]} />
             <meshBasicMaterial
               ref={materialRef}
-              color="#ffaa44"
+              color="#ffd9a0"
               transparent
               opacity={0.8}
             />
@@ -58,9 +58,9 @@ function Candle({
           <pointLight
             ref={lightRef}
             position={[0, 0.25, 0]}
-            color={0xffaa44}
-            intensity={0.6}
-            distance={2}
+            color={0xffd9a0}
+            intensity={0.4}
+            distance={1.2}
             decay={2}
           />
         </>

@@ -7,11 +7,8 @@ import {
 } from "@/lib/audioEngine";
 import { SONGS, PROPOSAL_MUSIC } from "@/lib/musicCatalog";
 
-type AudioChannel = "ambience" | "piano" | "strings" | "footsteps" | "candles";
-
 export function useProposalAudio() {
   const playAmbience = useCallback(() => {
-    // Dreamy background — "My Love Mine All Mine"
     playSong(SONGS[PROPOSAL_MUSIC.ambience], {
       fadeInMs: 4000,
       volume: PROPOSAL_MUSIC.volume,
@@ -20,16 +17,14 @@ export function useProposalAudio() {
   }, []);
 
   const playPiano = useCallback(() => {
-    // Elegant piano — "Clair de Lune"
     playSong(SONGS[PROPOSAL_MUSIC.piano], {
-      fadeInMs: 3000,
+      fadeInMs: 5000,
       volume: PROPOSAL_MUSIC.volume * 0.9,
       loop: true,
     });
   }, []);
 
   const playStrings = useCallback(() => {
-    // Strings / orchestral layer — Canon in D (cello & piano)
     playSong(SONGS[PROPOSAL_MUSIC.strings], {
       fadeInMs: 5000,
       volume: PROPOSAL_MUSIC.volume * 1.1,
@@ -37,18 +32,25 @@ export function useProposalAudio() {
     });
   }, []);
 
-  const playFootsteps = useCallback(() => {
-    // No separate footsteps — they're part of the cinematic
+  const playReading = useCallback(() => {
+    playSong(SONGS[PROPOSAL_MUSIC.reading], {
+      fadeInMs: 4500,
+      volume: PROPOSAL_MUSIC.volume * 0.85,
+      loop: true,
+    });
   }, []);
 
-  const playCandleCrackle = useCallback(() => {
-    // No separate candle sound — ambient music covers it
+  const playEmotional = useCallback(() => {
+    playSong(SONGS[PROPOSAL_MUSIC.emotional], {
+      fadeInMs: 5000,
+      volume: PROPOSAL_MUSIC.volume * 1.0,
+      loop: true,
+    });
   }, []);
 
   const playClimax = useCallback(() => {
-    // Climax song — "Kesariya" — the romantic Bollywood moment
     playSong(SONGS[PROPOSAL_MUSIC.climax], {
-      fadeInMs: 3000,
+      fadeInMs: 4000,
       volume: PROPOSAL_MUSIC.volume * 1.2,
       loop: true,
     });
@@ -66,8 +68,8 @@ export function useProposalAudio() {
     playAmbience,
     playPiano,
     playStrings,
-    playFootsteps,
-    playCandleCrackle,
+    playReading,
+    playEmotional,
     playClimax,
     fadeAll,
     setMasterVolume: setVolume,
