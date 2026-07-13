@@ -33,11 +33,28 @@ export function LivingRoomScene({ phase, onOpen, onView }: Props) {
     <group>
       <ambientLight intensity={lights.ambient} />
 
-      {/* Full living room environment from .blend */}
-      <GltfModel url="/models/livingroom/scene.glb" position={[0, 0, 0]} scale={1} />
+      {/* Procedural room shell (full GLB unavailable) */}
+      <RoomShell tint="#3a2620" floorTint="#5a3d2d" width={9} depth={6} height={3.2} />
 
-      {/* Fireplace model */}
-      <GltfModel url="/models/fireplace/scene.glb" position={[0, 0, -2]} scale={1} />
+      {/* Fireplace hearth — simple procedural block since GLB is unavailable */}
+      <mesh position={[0, 0.5, -2.7]} castShadow receiveShadow>
+        <boxGeometry args={[2, 1, 0.5]} />
+        <meshStandardMaterial color="#2a1a14" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.4, -2.45]}>
+        <boxGeometry args={[1.4, 0.7, 0.1]} />
+        <meshStandardMaterial
+          color="#ff7733"
+          emissive="#ff5522"
+          emissiveIntensity={phase === "night" ? 1.4 : 0.6}
+          roughness={0.4}
+        />
+      </mesh>
+
+      {/* Working props */}
+      <GltfModel url="/models/houseplants/scene.gltf" position={[-3.5, 0, 1.5]} scale={0.45} />
+      <GltfModel url="/models/bookshelf/scene.glb" position={[3.5, 0, -2.5]} scale={1} />
+      <GltfModel url="/models/vinyl-player/scene.gltf" position={[-2.8, 0.5, -2]} scale={0.4} />
 
       {/* Fireplace warm glow */}
       <pointLight
