@@ -51,13 +51,15 @@ const PRELOAD_URLS = [
   "/models/polytree/scene.gltf",
   "/models/books/scene.gltf",
 ];
-PRELOAD_URLS.forEach((u) => {
-  try {
-    (require("@react-three/drei") as typeof import("@react-three/drei")).useGLTF.preload(u);
-  } catch {
-    /* noop */
-  }
-});
+if (typeof window !== "undefined") {
+  PRELOAD_URLS.forEach((u) => {
+    try {
+      useGLTF.preload(u);
+    } catch {
+      /* noop */
+    }
+  });
+}
 
 export function SceneCanvas({ phase, weather, children }: Props) {
   return (
