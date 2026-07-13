@@ -99,7 +99,7 @@ function World() {
 
   return (
     <div className="scene">
-      <div key={sceneKey}>
+      <div>
         <SceneCanvas phase={phase} weather={weather.current}>
           <Cat location={loc} phase={phase} season={season} weather={weather.current} />
 

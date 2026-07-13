@@ -1,6 +1,6 @@
-import { Suspense, useMemo, useRef, useCallback } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, PerspectiveCamera } from "@react-three/drei";
+import { Environment, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { LightingController } from "./LightingController";
 import { RainSystem } from "./RainSystem";
@@ -41,13 +41,30 @@ function CameraRig() {
   return null;
 }
 
-export function SceneCanvas({ phase, weather, children }: Props) {
-  const envKey = useMemo(() => `${phase}-${weather}`, [phase, weather]);
+const PRELOAD_URLS = [
+  "/gltf/cat/scene.gltf",
+  "/models/houseplants/scene.gltf",
+  "/models/lantern/scene.gltf",
+  "/models/telescope/scene.gltf",
+  "/models/vinyl-player/scene.gltf",
+  "/models/outdoor-couch/scene.gltf",
+  "/models/polytree/scene.gltf",
+  "/models/books/scene.gltf",
+];
+if (typeof window !== "undefined") {
+  PRELOAD_URLS.forEach((u) => {
+    try {
+      useGLTF.preload(u);
+    } catch {
+      /* noop */
+    }
+  });
+}
 
+export function SceneCanvas({ phase, weather, children }: Props) {
   return (
     <div className="absolute inset-0">
       <Canvas
-        key={envKey}
         shadows
         dpr={[1, 2]}
         gl={{
@@ -67,9 +84,10 @@ export function SceneCanvas({ phase, weather, children }: Props) {
 
           {children}
 
-          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 8, 22]} />
+          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 12, 30]} />
         </Suspense>
       </Canvas>
     </div>
   );
 }
+
