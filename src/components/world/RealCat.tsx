@@ -263,15 +263,16 @@ export function RealCat({ location, phase, season, weather }: Props) {
     root.current.rotation.y = THREE.MathUtils.lerp(root.current.rotation.y, facing * sway * Math.sin(t * 0.9), 0.1);
   });
 
-  // Keep a DOM overlay for name/editor and mood label; GLTF handles the cat model itself.
-  // Placement uses the old 2D coordinates mapped into an orthographic-ish feel.
-  const worldX = (pos.x - 0.5) * 6;
-  const worldY = (pos.y - 0.5) * 3;
+  // Placement uses the old 2D coordinates mapped into ground-plane world coords.
+  const worldX = (pos.x - 0.5) * 4;
+  const worldZ = 0.5 - (pos.y - 0.5) * 2;
 
   return (
-    <group ref={root} position={[worldX, worldY, 0]}>
-      {/* Cat clickable mesh proxy: use a simple box if the GLTF has no pointer events */}
-      <primitive object={catScene} />
+    <group ref={root} position={[worldX, 0, worldZ]}>
+      <group scale={0.01}>
+        <primitive object={catScene} />
+      </group>
+
 
       {/* Interaction capture: R3F pointer events */}
       <mesh
