@@ -22,22 +22,20 @@ type SequenceState = {
   candlesLit: number;
   spotlightOn: boolean;
   particlesActive: boolean;
-  blossomsActive: boolean;
-  heartsActive: boolean;
   cameraShake: number;
   brightness: number;
 };
 
 const PHASE_DURATIONS: Record<ProposalPhase, number> = {
-  darkness: 3000,
-  "first-candle": 3000,
-  "candle-walk": 9000,
-  "room-awakens": 4000,
-  "stage-reveal": 3000,
+  darkness: 2000,
+  "first-candle": 2000,
+  "candle-walk": 8000,
+  "room-awakens": 3500,
+  "stage-reveal": 2500,
   "scroll-idle": 0, // waits for click
-  "scroll-opening": 2000,
-  "proposal-text": 0, // waits for text animation
-  "final-question": 0, // waits for text animation
+  "scroll-opening": 1200,
+  "proposal-text": 0, // waits for text to be visible
+  "final-question": 0, // waits for text to be visible
   choice: 0, // waits for user
   "yes-path": 5000,
   "time-path": 5000,
@@ -69,8 +67,6 @@ export function useProposalSequence(onEnterHouse: () => void) {
     candlesLit: 0,
     spotlightOn: false,
     particlesActive: false,
-    blossomsActive: false,
-    heartsActive: false,
     cameraShake: 0,
     brightness: 0,
   });
@@ -129,7 +125,6 @@ export function useProposalSequence(onEnterHouse: () => void) {
           candlesLit: 24,
           spotlightOn: progress > 0.3,
           particlesActive: progress > 0.4,
-          blossomsActive: progress > 0.5,
           brightness: lerp(0.08, 0.25, progress),
         }));
         if (progress < 1) {
@@ -146,7 +141,6 @@ export function useProposalSequence(onEnterHouse: () => void) {
     if (nextPhase === "stage-reveal") {
       setState((s) => ({
         ...s,
-        heartsActive: true,
         brightness: 0.3,
         cameraShake: 0.15,
       }));
@@ -166,7 +160,7 @@ export function useProposalSequence(onEnterHouse: () => void) {
       setState((s) => ({ ...s, phase: "scroll-opening" }));
       const t1 = setTimeout(() => {
         setState((s) => ({ ...s, phase: "proposal-text" }));
-      }, 2000);
+      }, 1000);
       timeoutsRef.current.push(t1);
     }
   }, [state.phase]);
@@ -190,8 +184,6 @@ export function useProposalSequence(onEnterHouse: () => void) {
           ...s,
           phase: "yes-path",
           brightness: 0.45,
-          heartsActive: true,
-          blossomsActive: true,
           particlesActive: true,
         }));
         const t1 = setTimeout(() => {

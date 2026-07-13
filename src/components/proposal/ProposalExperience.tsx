@@ -98,8 +98,6 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
     candlesLit,
     spotlightOn,
     particlesActive,
-    blossomsActive,
-    heartsActive,
     cameraShake,
     brightness,
     handleScrollClick,
@@ -184,8 +182,6 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
         candlesLit={candlesLit}
         spotlightOn={spotlightOn}
         particlesActive={particlesActive}
-        blossomsActive={blossomsActive}
-        heartsActive={heartsActive}
         cameraShake={cameraShake}
         brightness={finalBrightness}
         scrollOpening={scrollOpening}
