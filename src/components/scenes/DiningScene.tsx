@@ -1,4 +1,5 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import { Html } from "@react-three/drei";
@@ -17,8 +18,35 @@ export function DiningScene({ phase, onOpen, onView }: Props) {
     <group>
       <ambientLight intensity={isNight ? 0.06 : 0.2} />
 
-      {/* Full dining room environment from .blend */}
-      <GltfModel url="/models/diningroom/scene.glb" position={[0, 0, 0]} scale={1} />
+      {/* Procedural dining shell + table */}
+      <RoomShell tint="#3a2a2a" floorTint="#5a3d2d" width={8} depth={6} height={3.2} />
+      {/* Table */}
+      <mesh position={[0, 0.75, -1]} castShadow receiveShadow>
+        <boxGeometry args={[3, 0.08, 1.4]} />
+        <meshStandardMaterial color="#5a3520" roughness={0.55} />
+      </mesh>
+      {/* Table legs */}
+      {[
+        [-1.3, 0.37, -0.5],
+        [1.3, 0.37, -0.5],
+        [-1.3, 0.37, -1.5],
+        [1.3, 0.37, -1.5],
+      ].map((p, i) => (
+        <mesh key={i} position={p as [number, number, number]} castShadow>
+          <boxGeometry args={[0.1, 0.75, 0.1]} />
+          <meshStandardMaterial color="#3a2415" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Candles */}
+      <mesh position={[-0.6, 0.9, -1]} castShadow>
+        <cylinderGeometry args={[0.05, 0.05, 0.25, 8]} />
+        <meshStandardMaterial color="#f5eec8" emissive="#ffaa55" emissiveIntensity={isNight ? 1.2 : 0.3} />
+      </mesh>
+      <mesh position={[0.6, 0.9, -1]} castShadow>
+        <cylinderGeometry args={[0.05, 0.05, 0.25, 8]} />
+        <meshStandardMaterial color="#f5eec8" emissive="#ffaa55" emissiveIntensity={isNight ? 1.2 : 0.3} />
+      </mesh>
+      <GltfModel url="/models/houseplants/scene.gltf" position={[-3, 0, 1.5]} scale={0.4} />
 
       {/* Chandelier / overhead light */}
       <pointLight

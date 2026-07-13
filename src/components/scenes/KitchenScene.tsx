@@ -1,4 +1,5 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
@@ -44,8 +45,28 @@ export function KitchenScene({ phase, onOpen, onView }: Props) {
     <group>
       <ambientLight intensity={isNight ? 0.08 : 0.2} />
 
-      {/* Full kitchen environment from .blend */}
-      <GltfModel url="/models/kitchen/scene.glb" position={[0, 0, 0]} scale={1} />
+      {/* Procedural kitchen shell + counters */}
+      <RoomShell tint="#e8dcc4" floorTint="#8a6a4a" width={8} depth={6} height={3} />
+      {/* Counter L-shape */}
+      <mesh position={[0, 0.45, -2.4]} castShadow receiveShadow>
+        <boxGeometry args={[6, 0.9, 0.8]} />
+        <meshStandardMaterial color="#c8b088" roughness={0.5} />
+      </mesh>
+      <mesh position={[-2.8, 0.45, -1]} castShadow receiveShadow>
+        <boxGeometry args={[0.8, 0.9, 2.8]} />
+        <meshStandardMaterial color="#c8b088" roughness={0.5} />
+      </mesh>
+      {/* Counter top */}
+      <mesh position={[0, 0.92, -2.4]} receiveShadow>
+        <boxGeometry args={[6.05, 0.05, 0.85]} />
+        <meshStandardMaterial color="#2a2620" roughness={0.3} metalness={0.2} />
+      </mesh>
+      {/* Fridge */}
+      <mesh position={[2.8, 1, -2.6]} castShadow>
+        <boxGeometry args={[1, 2, 0.7]} />
+        <meshStandardMaterial color="#dcdcdc" roughness={0.35} metalness={0.5} />
+      </mesh>
+      <GltfModel url="/models/vinyl-player/scene.gltf" position={[-1.5, 0.95, -2.4]} scale={0.3} />
 
       {/* Vinyl player accent light when playing */}
       <pointLight
