@@ -196,7 +196,7 @@ export function MeadowScene({ season = "summer", onAdd, onView }: Props) {
       </group>
 
       {/* Memory leaves */}
-      {items?.slice(0, 6).map((_m, i) => {
+      {items?.slice(0, 6).map((m, i) => {
         const x = -2.5 + (i % 3) * 2.5;
         const z = 1 + Math.floor(i / 3) * 1.5;
         return (
