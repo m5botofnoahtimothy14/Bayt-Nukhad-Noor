@@ -1,8 +1,33 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { Fireflies, SnowFall, FallingLeaves } from "@/components/world/AnimatedElements";
 import { useMemories, type Memory } from "@/components/world/memories";
 import type { Season } from "@/hooks/useSeason";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+
+function DriftingMist() {
+  const ref1 = useRef<THREE.Mesh>(null);
+  const ref2 = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (ref1.current) ref1.current.position.x = Math.sin(t * 0.1) * 2;
+    if (ref2.current) ref2.current.position.x = Math.cos(t * 0.08) * 2.5;
+  });
+  return (
+    <>
+      <mesh ref={ref1} position={[0, 0.15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[16, 10]} />
+        <meshBasicMaterial color="#aabbcc" transparent opacity={0.08} />
+      </mesh>
+      <mesh ref={ref2} position={[0, 0.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[14, 8]} />
+        <meshBasicMaterial color="#99aabb" transparent opacity={0.05} />
+      </mesh>
+    </>
+  );
+}
 
 type Props = {
   season?: Season;
@@ -32,18 +57,14 @@ const TREE_LAYOUT = [
 
 export function ForestScene({ season = "summer", onAdd, onView }: Props) {
   const { items } = useMemories("forest");
+  const lanternLightRef = useRef<THREE.PointLight>(null);
 
-  const fireflies = useMemo(
-    () =>
-      season !== "winter"
-        ? Array.from({ length: 20 }).map((_i, i) => ({
-            x: -4 + Math.random() * 8,
-            y: 0.5 + Math.random() * 2,
-            z: -2 - Math.random() * 4,
-          }))
-        : [],
-    [season],
-  );
+  useFrame(({ clock }) => {
+    if (lanternLightRef.current) {
+      const t = clock.getElapsedTime();
+      lanternLightRef.current.intensity = 0.5 + Math.sin(t * 3) * 0.08 + Math.sin(t * 7.3) * 0.04;
+    }
+  });
 
   return (
     <group>
@@ -90,7 +111,7 @@ export function ForestScene({ season = "summer", onAdd, onView }: Props) {
       {/* Lantern along path */}
       <group position={[0, 0, -1]}>
         <GltfModel url="/models/lantern/scene.gltf" scale={0.2} />
-        <pointLight intensity={0.5} color={0xff9944} distance={3} decay={2} />
+        <pointLight ref={lanternLightRef} intensity={0.5} color={0xff9944} distance={3} decay={2} />
       </group>
 
       {/* Mushrooms (small bumps) */}
@@ -102,18 +123,7 @@ export function ForestScene({ season = "summer", onAdd, onView }: Props) {
       ))}
 
       {/* Ground mist */}
-      {season !== "winter" && (
-        <>
-          <mesh position={[0, 0.3, -3]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[14, 4]} />
-            <meshBasicMaterial color="#aabbcc" transparent opacity={0.06} side={2} />
-          </mesh>
-          <mesh position={[-1, 0.5, -1]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[10, 3]} />
-            <meshBasicMaterial color="#8899aa" transparent opacity={0.04} side={2} />
-          </mesh>
-        </>
-      )}
+      {season !== "winter" && <DriftingMist />}
 
       {/* Sunbeams (day) */}
       {(season === "spring" || season === "summer") && (
@@ -128,42 +138,13 @@ export function ForestScene({ season = "summer", onAdd, onView }: Props) {
       )}
 
       {/* Snow (winter) */}
-      {season === "winter" &&
-        Array.from({ length: 40 }).map((_i, i) => (
-          <mesh
-            key={i}
-            position={[-5 + Math.random() * 10, Math.random() * 4, -1 - Math.random() * 5]}
-          >
-            <sphereGeometry args={[0.03, 6, 6]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
-          </mesh>
-        ))}
+      {season === "winter" && <SnowFall count={50} height={6} />}
 
       {/* Falling leaves (autumn) */}
-      {season === "autumn" &&
-        Array.from({ length: 15 }).map((_i, i) => (
-          <mesh
-            key={i}
-            position={[-3 + Math.random() * 6, 0.5 + Math.random() * 3, -2 - Math.random() * 3]}
-          >
-            <boxGeometry args={[0.04, 0.06, 0.01]} />
-            <meshStandardMaterial
-              color={["#cc6633", "#dd8844", "#aa4422"][i % 3]}
-              roughness={0.7}
-            />
-          </mesh>
-        ))}
+      {season === "autumn" && <FallingLeaves count={20} />}
 
       {/* Fireflies (night, warm seasons) */}
-      {fireflies.map((f, i) => (
-        <group key={i} position={[f.x, f.y, f.z]}>
-          <mesh>
-            <sphereGeometry args={[0.03, 6, 6]} />
-            <meshBasicMaterial color="#ffff66" transparent opacity={0.7} />
-          </mesh>
-          <pointLight intensity={0.1} color={0xffff44} distance={1} decay={2} />
-        </group>
-      ))}
+      {season !== "winter" && <Fireflies count={25} area={[8, 4, 6]} color="#ffee44" />}
 
       {/* Memory glows */}
       {items?.slice(0, 6).map((m, i) => {

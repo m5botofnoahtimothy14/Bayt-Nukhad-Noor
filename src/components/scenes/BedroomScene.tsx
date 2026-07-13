@@ -1,4 +1,6 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { AnimatedCandle } from "@/components/world/AnimatedElements";
+import { ProposalDust } from "@/components/proposal/ProposalParticles";
 import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
@@ -164,6 +166,78 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
           </Html>
         </group>
       ))}
+
+      {/* Rug under bed area */}
+      <mesh position={[0, 0.01, -1]} rotation={[-Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[2.0, 2.0, 0.02, 32]} />
+        <meshStandardMaterial color="#5a3a5a" roughness={0.8} />
+      </mesh>
+
+      {/* Curtains — left wall window area */}
+      <mesh position={[-3.9, 1.7, 0]}>
+        <boxGeometry args={[0.02, 1.3, 0.45]} />
+        <meshStandardMaterial color="#4a3a5a" roughness={0.6} />
+      </mesh>
+      <mesh position={[-3.9, 1.7, 1]}>
+        <boxGeometry args={[0.02, 1.3, 0.45]} />
+        <meshStandardMaterial color="#4a3a5a" roughness={0.6} />
+      </mesh>
+
+      {/* Dressing table — right side */}
+      {/* Table top */}
+      <mesh position={[3, 0.75, 0]} castShadow>
+        <boxGeometry args={[0.8, 0.04, 0.4]} />
+        <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+      </mesh>
+      {/* Legs */}
+      <mesh position={[2.64, 0.375, -0.17]} castShadow>
+        <boxGeometry args={[0.06, 0.75, 0.06]} />
+        <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[3.36, 0.375, -0.17]} castShadow>
+        <boxGeometry args={[0.06, 0.75, 0.06]} />
+        <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[2.64, 0.375, 0.17]} castShadow>
+        <boxGeometry args={[0.06, 0.75, 0.06]} />
+        <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[3.36, 0.375, 0.17]} castShadow>
+        <boxGeometry args={[0.06, 0.75, 0.06]} />
+        <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+      </mesh>
+      {/* Mirror on wall */}
+      <mesh position={[3, 1.5, -0.21]}>
+        <boxGeometry args={[0.5, 0.7, 0.02]} />
+        <meshStandardMaterial color="#aabbcc" metalness={0.5} roughness={0.1} />
+      </mesh>
+
+      {/* Wardrobe — back wall */}
+      <mesh position={[-3, 1.1, -2.5]} castShadow>
+        <boxGeometry args={[1.2, 2.2, 0.6]} />
+        <meshStandardMaterial color="#3a2a2a" roughness={0.8} />
+      </mesh>
+      {/* Door lines */}
+      <mesh position={[-3 + 0.3, 1.1, -2.2]}>
+        <boxGeometry args={[0.01, 2, 0.01]} />
+        <meshStandardMaterial color="#2a1a1a" roughness={0.8} />
+      </mesh>
+      <mesh position={[-3 - 0.3, 1.1, -2.2]}>
+        <boxGeometry args={[0.01, 2, 0.01]} />
+        <meshStandardMaterial color="#2a1a1a" roughness={0.8} />
+      </mesh>
+
+      {/* Moon dust particles (night only) */}
+      {isNight && <ProposalDust active={true} count={30} />}
+
+      {/* Animated candle on dressing table */}
+      <AnimatedCandle position={[3, 0.82, 0]} height={0.1} />
+
+      {/* Throw blanket at foot of bed */}
+      <mesh position={[0, 0.9, -0.2]} rotation={[0.05, 0, 0]} castShadow>
+        <boxGeometry args={[2.5, 0.06, 0.6]} />
+        <meshStandardMaterial color="#8a5a7a" roughness={0.6} />
+      </mesh>
     </group>
   );
 }

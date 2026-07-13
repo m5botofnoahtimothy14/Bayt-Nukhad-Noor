@@ -1,8 +1,11 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { TwinklingStars } from "@/components/world/AnimatedElements";
 import { useMemories, type Memory } from "@/components/world/memories";
 import type { Season } from "@/hooks/useSeason";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import type { Group, PointLight } from "three";
 
 type Props = {
   season?: Season;
@@ -10,20 +13,53 @@ type Props = {
   onView: (m: Memory) => void;
 };
 
+function ConstellationStar({ position }: { position: [number, number, number] }) {
+  const ref = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    const s = 0.8 + Math.sin(t * 2.5 + position[0]) * 0.4;
+    ref.current.scale.setScalar(s);
+  });
+  return (
+    <group ref={ref} position={position}>
+      <mesh>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color="#ffdd88" transparent opacity={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
 export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
   const { items } = useMemories("observatory");
 
-  const stars = useMemo(
-    () =>
-      Array.from({ length: 200 }).map((_i, i) => ({
-        x: -6 + Math.random() * 12,
-        y: 1 + Math.random() * 6,
-        z: -4 - Math.random() * 5,
-        size: 0.015 + Math.random() * 0.035,
-        opacity: 0.2 + Math.random() * 0.7,
-      })),
-    [],
-  );
+  const telescopeRef = useRef<Group>(null);
+  const nebula1Ref = useRef<PointLight>(null);
+  const nebula2Ref = useRef<PointLight>(null);
+
+  useFrame((_, dt) => {
+    if (telescopeRef.current) {
+      telescopeRef.current.rotation.y += dt * 0.02;
+    }
+    if (nebula1Ref.current) {
+      const t = performance.now() * 0.001;
+      nebula1Ref.current.intensity = 0.08 + Math.sin(t * 0.7) * 0.03;
+    }
+    if (nebula2Ref.current) {
+      const t = performance.now() * 0.001;
+      nebula2Ref.current.intensity = 0.06 + Math.sin(t * 0.9 + 1) * 0.025;
+    }
+  });
+
+  const constellationPositions: [number, number, number][] = [
+    [-2, 3.5, -5],
+    [-1.2, 4, -5.2],
+    [0, 3.8, -5],
+    [0.8, 4.3, -5.3],
+    [1.5, 3.6, -5.1],
+    [2.2, 4.1, -5],
+  ];
 
   return (
     <group>
@@ -36,7 +72,7 @@ export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
       </mesh>
 
       {/* Telescope — center, aimed up */}
-      <group position={[0, 0.5, 0]}>
+      <group position={[0, 0.5, 0]} ref={telescopeRef}>
         <GltfModel url="/models/telescope/scene.gltf" scale={2} rotation={[0.4, 0, 0]} />
       </group>
 
@@ -51,6 +87,20 @@ export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
         rotation={[0, 0.5, 0]}
       />
 
+      {/* Star chart stand */}
+      <mesh position={[-2, 0.4, 1]}>
+        <boxGeometry args={[0.5, 0.02, 0.3]} />
+        <meshStandardMaterial color="#5a4a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[-2.2, 0.21, 1.12]}>
+        <boxGeometry args={[0.04, 0.38, 0.04]} />
+        <meshStandardMaterial color="#5a4a3a" roughness={0.7} />
+      </mesh>
+      <mesh position={[-1.8, 0.21, 1.12]}>
+        <boxGeometry args={[0.04, 0.38, 0.04]} />
+        <meshStandardMaterial color="#5a4a3a" roughness={0.7} />
+      </mesh>
+
       {/* Railing */}
       {Array.from({ length: 16 }).map((_i, i) => {
         const angle = (i / 16) * Math.PI * 2;
@@ -62,31 +112,16 @@ export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
         );
       })}
 
-      {/* Starfield */}
-      {stars.map((s, i) => (
-        <mesh key={i} position={[s.x, s.y, s.z]}>
-          <sphereGeometry args={[s.size, 6, 6]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={s.opacity} />
-        </mesh>
-      ))}
+      {/* Starfield — animated twinkling */}
+      <TwinklingStars count={250} radius={20} />
 
       {/* Constellation lines — "our constellation" */}
-      {[
-        [-2, 3.5, -5],
-        [-1.2, 4, -5.2],
-        [0, 3.8, -5],
-        [0.8, 4.3, -5.3],
-        [1.5, 3.6, -5.1],
-        [2.2, 4.1, -5],
-      ].map((pos, i) => (
+      {constellationPositions.map((pos, i) => (
         <group key={i}>
-          <mesh position={pos as [number, number, number]}>
-            <sphereGeometry args={[0.06, 8, 8]} />
-            <meshBasicMaterial color="#ffdd88" transparent opacity={0.8} />
-          </mesh>
+          <ConstellationStar position={pos} />
           {i < 5 && (
             <mesh
-              position={[(pos[0] + [2.2, 4.1, -5][0]) / 2, (pos[1] + [2.2, 4.1, -5][1]) / 2, -5.05]}
+              position={[(pos[0] + constellationPositions[5][0]) / 2, (pos[1] + constellationPositions[5][1]) / 2, -5.05]}
               visible={false}
             >
               <boxGeometry args={[0.01, 0.01, 1]} />
@@ -95,14 +130,18 @@ export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
         </group>
       ))}
 
-      {/* Nebula glow */}
-      <pointLight position={[-3, 5, -7]} intensity={0.08} color={0xaa44cc} distance={8} decay={2} />
-      <pointLight position={[4, 4, -8]} intensity={0.06} color={0x4488cc} distance={8} decay={2} />
+      {/* Nebula glow — pulsing */}
+      <pointLight ref={nebula1Ref} position={[-3, 5, -7]} intensity={0.08} color={0xaa44cc} distance={8} decay={2} />
+      <pointLight ref={nebula2Ref} position={[4, 4, -8]} intensity={0.06} color={0x4488cc} distance={8} decay={2} />
 
       {/* Moon */}
       <mesh position={[-4, 5, -7]}>
-        <sphereGeometry args={[0.5, 16, 16]} />
+        <sphereGeometry args={[0.6, 16, 16]} />
         <meshBasicMaterial color="#ffeecc" />
+      </mesh>
+      <mesh position={[-4, 5, -7]}>
+        <sphereGeometry args={[0.8, 16, 16]} />
+        <meshBasicMaterial color="#ffeecc" transparent opacity={0.15} />
       </mesh>
 
       {/* Memory stars */}

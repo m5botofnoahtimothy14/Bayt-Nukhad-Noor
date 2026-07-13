@@ -4,6 +4,7 @@ import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
 import { useVinylAudio } from "@/hooks/useVinylAudio";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
+import { AnimatedCandle } from "@/components/world/AnimatedElements";
 import { Html } from "@react-three/drei";
 
 type Props = {
@@ -128,6 +129,79 @@ export function KitchenScene({ phase, onOpen, onView }: Props) {
           </Html>
         </group>
       ))}
+
+      {/* Kitchen table — small round table in center */}
+      <mesh position={[1.5, 0.5, 1]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.6, 0.6, 0.04, 16]} />
+        <meshStandardMaterial color="#8a6a4a" roughness={0.5} />
+      </mesh>
+      <mesh position={[1.5, 0.25, 1]} castShadow>
+        <cylinderGeometry args={[0.05, 0.05, 0.5, 8]} />
+        <meshStandardMaterial color="#8a6a4a" roughness={0.5} />
+      </mesh>
+
+      {/* Chair 1 */}
+      <group position={[1.0, 0, 1.2]}>
+        <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.35, 0.04, 0.35]} />
+          <meshStandardMaterial color="#6a4a30" roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.5, -0.155]} castShadow>
+          <boxGeometry args={[0.35, 0.4, 0.04]} />
+          <meshStandardMaterial color="#6a4a30" roughness={0.5} />
+        </mesh>
+      </group>
+
+      {/* Chair 2 */}
+      <group position={[2.0, 0, 0.8]}>
+        <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.35, 0.04, 0.35]} />
+          <meshStandardMaterial color="#6a4a30" roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.5, 0.155]} castShadow>
+          <boxGeometry args={[0.35, 0.4, 0.04]} />
+          <meshStandardMaterial color="#6a4a30" roughness={0.5} />
+        </mesh>
+      </group>
+
+      {/* Hanging pots above counter */}
+      {([-1, -0.5, 0] as const).map((x, i) => (
+        <group key={`pot-${i}`}>
+          <mesh position={[x, 2.5, -2.4]} castShadow>
+            <cylinderGeometry args={[0.1, 0.08, 0.12, 8]} />
+            <meshStandardMaterial color="#8a7a6a" roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[x, 2.66, -2.4]}>
+            <cylinderGeometry args={[0.005, 0.005, 0.3, 3]} />
+            <meshStandardMaterial color="#555555" roughness={0.3} metalness={0.6} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Bread loaf on counter */}
+      <mesh position={[1, 0.97, -2.4]} castShadow>
+        <boxGeometry args={[0.2, 0.1, 0.12]} />
+        <meshStandardMaterial color="#c8a060" roughness={0.7} />
+      </mesh>
+
+      {/* Curtains near window area (right wall) */}
+      <mesh position={[3.9, 1.8, -1]} castShadow>
+        <boxGeometry args={[0.02, 1.2, 0.4]} />
+        <meshStandardMaterial color="#d8c8b0" roughness={0.6} />
+      </mesh>
+      <mesh position={[3.9, 1.8, 0]} castShadow>
+        <boxGeometry args={[0.02, 1.2, 0.4]} />
+        <meshStandardMaterial color="#d8c8b0" roughness={0.6} />
+      </mesh>
+
+      {/* Animated candle on table */}
+      <AnimatedCandle position={[1.5, 0.55, 1]} height={0.12} />
+
+      {/* Ceiling lamp — decorative lampshade (inverted cone) */}
+      <mesh position={[0, 2.8, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.15, 0.2, 8]} />
+        <meshStandardMaterial color="#3a3020" roughness={0.6} />
+      </mesh>
     </group>
   );
 }

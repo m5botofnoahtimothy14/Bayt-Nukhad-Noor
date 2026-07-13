@@ -1,9 +1,12 @@
 import { GltfModel } from "@/components/models/GltfModel";
 import { useMemories, type Memory } from "@/components/world/memories";
+import { Fireflies, AnimatedGrass, LanternGlow, FallingLeaves } from "@/components/world/AnimatedElements";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import type { Season } from "@/hooks/useSeason";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 type Props = {
   phase: TimePhase;
@@ -30,6 +33,29 @@ const FLOWER_COLORS = [
   "#aa88ff",
 ];
 
+function AnimatedFlower({ position, color, scale }: { position: [number, number, number]; color: string; scale: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const seed = useMemo(() => position[0] * 0.37 + position[2] * 0.73, [position]);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    ref.current.rotation.z = Math.sin(t * 1.2 + seed) * 0.08;
+    ref.current.rotation.x = Math.cos(t * 0.9 + seed) * 0.05;
+  });
+  return (
+    <group ref={ref} position={position}>
+      <mesh>
+        <sphereGeometry args={[0.08 * scale, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, -0.1, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.2, 4]} />
+        <meshStandardMaterial color="#4a6a3a" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
 export function GardenScene({ phase, season = "summer", onAdd, onView }: Props) {
   const { items } = useMemories("garden");
   const isDay = phase === "day" || phase === "dawn";
@@ -45,15 +71,18 @@ export function GardenScene({ phase, season = "summer", onAdd, onView }: Props) 
     [],
   );
 
-  const grassBlades = useMemo(
-    () =>
-      Array.from({ length: 40 }).map((_i, i) => ({
-        x: -5 + Math.random() * 10,
-        z: -2 + Math.random() * 5,
-        height: 0.2 + Math.random() * 0.4,
-      })),
-    [],
-  );
+  const grassBlades = useMemo(() => {
+    const pseudo = (seed: number) => {
+      const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    return Array.from({ length: 40 }).map((_i, i) => ({
+      x: -5 + pseudo(i * 1.1) * 10,
+      z: -2 + pseudo(i * 2.3 + 100) * 5,
+      h: 0.2 + pseudo(i * 3.7 + 200) * 0.4,
+      color: "#5a8a4a",
+    }));
+  }, []);
 
   return (
     <group>
@@ -120,36 +149,22 @@ export function GardenScene({ phase, season = "summer", onAdd, onView }: Props) 
       {[-1.5, 0.5, 2.5].map((x, i) => (
         <group key={i} position={[x, 0, 0.5]}>
           <GltfModel url="/models/lantern/scene.gltf" scale={0.2} />
-          <pointLight
-            intensity={phase === "night" ? 0.4 : 0.1}
-            color={0xff9944}
-            distance={2.5}
-            decay={2}
-          />
+          <LanternGlow position={[0, 0.3, 0]} />
         </group>
       ))}
 
-      {/* Grass blades */}
-      {grassBlades.map((g, i) => (
-        <mesh key={i} position={[g.x, g.height / 2, g.z]}>
-          <boxGeometry args={[0.03, g.height, 0.02]} />
-          <meshStandardMaterial color="#5a8a4a" roughness={0.9} />
-        </mesh>
-      ))}
+      {/* Animated grass */}
+      <AnimatedGrass blades={grassBlades} />
 
       {/* Flowers (spring/summer) */}
       {(season === "spring" || season === "summer") &&
         flowers.map((f, i) => (
-          <group key={i} position={[f.x, 0.15, f.z]}>
-            <mesh>
-              <sphereGeometry args={[0.08 * f.scale, 8, 8]} />
-              <meshStandardMaterial color={f.color} roughness={0.5} />
-            </mesh>
-            <mesh position={[0, -0.1, 0]}>
-              <cylinderGeometry args={[0.01, 0.01, 0.2, 4]} />
-              <meshStandardMaterial color="#4a6a3a" roughness={0.8} />
-            </mesh>
-          </group>
+          <AnimatedFlower
+            key={i}
+            position={[f.x, 0.15, f.z]}
+            color={f.color}
+            scale={f.scale}
+          />
         ))}
 
       {/* Fence — background */}
@@ -196,6 +211,43 @@ export function GardenScene({ phase, season = "summer", onAdd, onView }: Props) 
         <planeGeometry args={[10, 6]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
+
+      {/* Animated fireflies (non-winter) */}
+      {season !== "winter" && <Fireflies count={20} area={[8, 3, 6]} color="#ffee44" />}
+
+      {/* Falling leaves (autumn only) */}
+      {season === "autumn" && <FallingLeaves count={15} />}
+
+      {/* Stone path — small bushes */}
+      {[-0.5, 0.7, 1.9].map((x, i) => (
+        <mesh key={`bush-${i}`} position={[x + 0.25, 0.06, 1.2 + Math.sin(i) * 0.2]}>
+          <sphereGeometry args={[0.08, 6, 6]} />
+          <meshStandardMaterial color="#4a7a4a" roughness={0.9} />
+        </mesh>
+      ))}
+
+      {/* Garden bench near the fence */}
+      <group position={[0, 0, -3]}>
+        {/* Seat */}
+        <mesh position={[0, 0.35, 0]}>
+          <boxGeometry args={[1.2, 0.06, 0.4]} />
+          <meshStandardMaterial color="#8a7a5a" roughness={0.8} />
+        </mesh>
+        {/* Back */}
+        <mesh position={[0, 0.55, -0.2]}>
+          <boxGeometry args={[1.2, 0.4, 0.04]} />
+          <meshStandardMaterial color="#7a6a4a" roughness={0.8} />
+        </mesh>
+        {/* Legs */}
+        {[[-0.55, 0.175, 0.15], [0.55, 0.175, 0.15], [-0.55, 0.175, -0.15], [0.55, 0.175, -0.15]].map(
+          (pos, i) => (
+            <mesh key={`leg-${i}`} position={pos as [number, number, number]}>
+              <boxGeometry args={[0.06, 0.35, 0.06]} />
+              <meshStandardMaterial color="#8a7a5a" roughness={0.8} />
+            </mesh>
+          ),
+        )}
+      </group>
     </group>
   );
 }

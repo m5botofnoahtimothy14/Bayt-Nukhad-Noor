@@ -1,4 +1,5 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { AnimatedCandle, Fireflies } from "@/components/world/AnimatedElements";
 import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
@@ -37,14 +38,88 @@ export function DiningScene({ phase, onOpen, onView }: Props) {
           <meshStandardMaterial color="#3a2415" roughness={0.7} />
         </mesh>
       ))}
-      {/* Candles */}
-      <mesh position={[-0.6, 0.9, -1]} castShadow>
-        <cylinderGeometry args={[0.05, 0.05, 0.25, 8]} />
-        <meshStandardMaterial color="#f5eec8" emissive="#ffaa55" emissiveIntensity={isNight ? 1.2 : 0.3} />
+      {/* Animated candles */}
+      <AnimatedCandle position={[-0.6, 0.79, -1]} height={0.2} />
+      <AnimatedCandle position={[0.6, 0.79, -1]} height={0.2} />
+
+      {/* Dining chairs — front side (z=0) */}
+      {[-1, 0, 1].map((x, i) => (
+        <group key={`chair-front-${i}`} position={[x, 0, 0]}>
+          <mesh position={[0, 0.45, 0]} castShadow>
+            <boxGeometry args={[0.35, 0.04, 0.35]} />
+            <meshStandardMaterial color="#5a3a20" roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 0.75, 0.16]} castShadow>
+            <boxGeometry args={[0.35, 0.5, 0.04]} />
+            <meshStandardMaterial color="#5a3a20" roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Dining chairs — back side (z=-2) */}
+      {[-1, 0, 1].map((x, i) => (
+        <group key={`chair-back-${i}`} position={[x, 0, -2]}>
+          <mesh position={[0, 0.45, 0]} castShadow>
+            <boxGeometry args={[0.35, 0.04, 0.35]} />
+            <meshStandardMaterial color="#5a3a20" roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 0.75, 0.16]} castShadow>
+            <boxGeometry args={[0.35, 0.5, 0.04]} />
+            <meshStandardMaterial color="#5a3a20" roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Curtains — right wall window */}
+      <mesh position={[3.9, 1.8, -0.5]} castShadow>
+        <boxGeometry args={[0.02, 1.4, 0.5]} />
+        <meshStandardMaterial color="#7a3a3a" roughness={0.7} />
       </mesh>
-      <mesh position={[0.6, 0.9, -1]} castShadow>
-        <cylinderGeometry args={[0.05, 0.05, 0.25, 8]} />
-        <meshStandardMaterial color="#f5eec8" emissive="#ffaa55" emissiveIntensity={isNight ? 1.2 : 0.3} />
+      <mesh position={[3.9, 1.8, 0.5]} castShadow>
+        <boxGeometry args={[0.02, 1.4, 0.5]} />
+        <meshStandardMaterial color="#7a3a3a" roughness={0.7} />
+      </mesh>
+
+      {/* Table runner */}
+      <mesh position={[0, 0.8, -1]} receiveShadow>
+        <boxGeometry args={[0.3, 0.005, 1.2]} />
+        <meshStandardMaterial color="#8a3a3a" roughness={0.5} />
+      </mesh>
+
+      {/* Wine glasses */}
+      <group position={[-0.3, 0.87, -0.8]}>
+        <mesh castShadow>
+          <cylinderGeometry args={[0.02, 0.015, 0.12, 8]} />
+          <meshStandardMaterial color="#ccccdd" transparent opacity={0.6} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.08, 0]} castShadow>
+          <sphereGeometry args={[0.025, 6, 6]} />
+          <meshStandardMaterial color="#ccccdd" transparent opacity={0.6} roughness={0.2} />
+        </mesh>
+      </group>
+      <group position={[0.3, 0.87, -1.2]}>
+        <mesh castShadow>
+          <cylinderGeometry args={[0.02, 0.015, 0.12, 8]} />
+          <meshStandardMaterial color="#ccccdd" transparent opacity={0.6} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.08, 0]} castShadow>
+          <sphereGeometry args={[0.025, 6, 6]} />
+          <meshStandardMaterial color="#ccccdd" transparent opacity={0.6} roughness={0.2} />
+        </mesh>
+      </group>
+
+      {/* Fireflies — warm ambient glow */}
+      <Fireflies count={8} area={[4, 2, 3]} color="#ffdd88" />
+
+      {/* Sideboard — left wall */}
+      <mesh position={[-3.5, 0.4, -1]} castShadow receiveShadow>
+        <boxGeometry args={[1.2, 0.8, 0.4]} />
+        <meshStandardMaterial color="#4a2a15" roughness={0.6} />
+      </mesh>
+      {/* Decorative vase on sideboard */}
+      <mesh position={[-3.5, 0.88, -1]} castShadow>
+        <cylinderGeometry args={[0.06, 0.04, 0.15, 8]} />
+        <meshStandardMaterial color="#6a4a2a" roughness={0.4} />
       </mesh>
       <GltfModel url="/models/houseplants/scene.gltf" position={[-3, 0, 1.5]} scale={0.4} />
 

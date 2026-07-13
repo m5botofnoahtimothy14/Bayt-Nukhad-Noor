@@ -22,15 +22,15 @@ function WelcomeOverlay({ text, visible }: { text: string; visible: boolean }) {
           transition={{ duration: 2 }}
         >
           <motion.p
-            className="serif italic text-center px-8"
+            className="proposal-heading text-center px-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 2, delay: 0.5 }}
             style={{
-              fontSize: "clamp(1.2rem, 3.5vw, 2rem)",
+              fontSize: "clamp(1.5rem, 4vw, 2.8rem)",
               color: "oklch(0.92 0.04 60 / 90%)",
               textShadow: "0 0 40px oklch(0.7 0.12 60 / 30%)",
-              letterSpacing: "0.05em",
+              letterSpacing: "0.02em",
             }}
           >
             {text}
@@ -76,10 +76,10 @@ Welcome home.`;
             }}
           >
             <p
-              className="serif italic leading-[2] text-center whitespace-pre-line"
+              className="proposal-text leading-[2.2] text-center whitespace-pre-line"
               style={{
                 color: "oklch(0.3 0.08 30)",
-                fontSize: "clamp(0.85rem, 2.2vw, 1.05rem)",
+                fontSize: "clamp(0.9rem, 2.4vw, 1.1rem)",
               }}
             >
               {noteText}
@@ -188,7 +188,7 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
           transition={{ duration: 1.5, delay: 1 }}
         >
           <p
-            className="serif italic text-sm text-center"
+            className="proposal-heading text-base text-center"
             style={{ color: "oklch(0.85 0.04 60 / 60%)" }}
           >
             click the scroll

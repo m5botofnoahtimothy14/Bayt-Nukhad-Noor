@@ -1,8 +1,11 @@
+import { AnimatedGrass, FallingLeaves, RainFall, SnowFall } from "@/components/world/AnimatedElements";
 import { GltfModel } from "@/components/models/GltfModel";
 import { useMemories, type Memory } from "@/components/world/memories";
 import type { Season } from "@/hooks/useSeason";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import type { Group } from "three";
 
 type Props = {
   season?: Season;
@@ -22,15 +25,18 @@ const FLOWER_COLORS = ["#ff6688", "#ffaa44", "#cc66ff", "#ff4466", "#66ccff", "#
 export function MeadowScene({ season = "summer", onAdd, onView }: Props) {
   const { items } = useMemories("meadow");
 
-  const grassBlades = useMemo(
-    () =>
-      Array.from({ length: 50 }).map((_i, i) => ({
-        x: -5 + Math.random() * 10,
-        z: -1 + Math.random() * 5,
-        height: 0.15 + Math.random() * 0.35,
-      })),
-    [],
-  );
+  const grassBlades = useMemo(() => {
+    const hash = (i: number) => {
+      let h = (i * 2654435761) >>> 0;
+      return (h & 0xffff) / 0xffff;
+    };
+    return Array.from({ length: 50 }).map((_i, i) => ({
+      x: -5 + hash(i) * 10,
+      z: -1 + hash(i + 100) * 5,
+      h: 0.2 + hash(i + 200) * 0.4,
+      color: "#5a8a4a",
+    }));
+  }, []);
 
   const flowers = useMemo(
     () =>
@@ -99,68 +105,21 @@ export function MeadowScene({ season = "summer", onAdd, onView }: Props) {
       />
 
       {/* Grass blades */}
-      {grassBlades.map((g, i) => (
-        <mesh key={i} position={[g.x, g.height / 2, g.z]}>
-          <boxGeometry args={[0.025, g.height, 0.015]} />
-          <meshStandardMaterial
-            color={season === "winter" ? "#8a9a8a" : "#5a8a4a"}
-            roughness={0.9}
-          />
-        </mesh>
-      ))}
+      <AnimatedGrass blades={grassBlades} />
 
       {/* Flowers */}
       {flowers.map((f, i) => (
-        <group key={i} position={[f.x, 0.12, f.z]}>
-          <mesh>
-            <sphereGeometry args={[0.06, 8, 8]} />
-            <meshStandardMaterial color={f.color} roughness={0.5} />
-          </mesh>
-          <mesh position={[0, -0.08, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 0.16, 4]} />
-            <meshStandardMaterial color="#4a6a3a" roughness={0.8} />
-          </mesh>
-        </group>
+        <MeadowFlower key={i} position={[f.x, 0.12, f.z]} color={f.color} index={i} />
       ))}
 
       {/* Rain (spring/summer/autumn) */}
-      {season !== "winter" &&
-        Array.from({ length: 60 }).map((_i, i) => (
-          <mesh
-            key={i}
-            position={[-5 + Math.random() * 10, 0.5 + Math.random() * 3.5, -1 - Math.random() * 5]}
-          >
-            <cylinderGeometry args={[0.005, 0.005, 0.15, 4]} />
-            <meshBasicMaterial color="#aabbdd" transparent opacity={0.3} />
-          </mesh>
-        ))}
+      {season !== "winter" && <RainFall count={70} speed={2.5} height={6} />}
 
       {/* Snow (winter) */}
-      {season === "winter" &&
-        Array.from({ length: 50 }).map((_i, i) => (
-          <mesh
-            key={i}
-            position={[-5 + Math.random() * 10, Math.random() * 4, -1 - Math.random() * 5]}
-          >
-            <sphereGeometry args={[0.03, 6, 6]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
-          </mesh>
-        ))}
+      {season === "winter" && <SnowFall count={60} height={6} />}
 
       {/* Falling leaves (autumn) */}
-      {season === "autumn" &&
-        Array.from({ length: 12 }).map((_i, i) => (
-          <mesh
-            key={i}
-            position={[-3 + Math.random() * 6, 0.5 + Math.random() * 2.5, 0 + Math.random() * 3]}
-          >
-            <boxGeometry args={[0.04, 0.06, 0.01]} />
-            <meshStandardMaterial
-              color={["#cc6633", "#dd8844", "#aa4422"][i % 3]}
-              roughness={0.7}
-            />
-          </mesh>
-        ))}
+      {season === "autumn" && <FallingLeaves count={15} />}
 
       {/* Fog layers */}
       <mesh position={[0, 0.4, -3]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -172,28 +131,7 @@ export function MeadowScene({ season = "summer", onAdd, onView }: Props) {
       <pointLight position={[0, 2, -8]} intensity={0.15} color={0xffeedd} distance={12} decay={2} />
 
       {/* Umbrella + figures silhouette */}
-      <group position={[0, 1.2, 0.5]}>
-        {/* Umbrella canopy */}
-        <mesh>
-          <sphereGeometry args={[0.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 3]} />
-          <meshStandardMaterial color="#cc3344" roughness={0.6} side={2} />
-        </mesh>
-        {/* Umbrella pole */}
-        <mesh position={[0, -0.4, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.8, 4]} />
-          <meshStandardMaterial color="#555" metalness={0.5} />
-        </mesh>
-        {/* Figure 1 */}
-        <mesh position={[-0.15, -0.5, 0]}>
-          <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
-          <meshStandardMaterial color="#334455" roughness={0.8} />
-        </mesh>
-        {/* Figure 2 */}
-        <mesh position={[0.15, -0.5, 0]}>
-          <capsuleGeometry args={[0.08, 0.25, 4, 8]} />
-          <meshStandardMaterial color="#443355" roughness={0.8} />
-        </mesh>
-      </group>
+      <UmbrellaSway />
 
       {/* Memory leaves */}
       {items?.slice(0, 6).map((m, i) => {
@@ -226,6 +164,62 @@ export function MeadowScene({ season = "summer", onAdd, onView }: Props) {
       >
         <planeGeometry args={[12, 8]} />
         <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+    </group>
+  );
+}
+
+function MeadowFlower({ position, color, index }: { position: [number, number, number]; color: string; index: number }) {
+  const groupRef = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.rotation.z = Math.sin(t * 1.2 + position[0] * 2 + index) * 0.08;
+    groupRef.current.rotation.x = Math.sin(t * 0.9 + position[2] * 1.5 + index * 0.5) * 0.05;
+  });
+  return (
+    <group ref={groupRef} position={position}>
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, -0.08, 0]}>
+        <cylinderGeometry args={[0.008, 0.008, 0.16, 4]} />
+        <meshStandardMaterial color="#4a6a3a" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
+function UmbrellaSway() {
+  const groupRef = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.rotation.z = Math.sin(t * 0.5) * 0.03;
+    groupRef.current.rotation.x = Math.cos(t * 0.3) * 0.02;
+  });
+  return (
+    <group ref={groupRef} position={[0, 1.2, 0.5]}>
+      {/* Umbrella canopy */}
+      <mesh>
+        <sphereGeometry args={[0.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 3]} />
+        <meshStandardMaterial color="#cc3344" roughness={0.6} side={2} />
+      </mesh>
+      {/* Umbrella pole */}
+      <mesh position={[0, -0.4, 0]}>
+        <cylinderGeometry args={[0.015, 0.015, 0.8, 4]} />
+        <meshStandardMaterial color="#555" metalness={0.5} />
+      </mesh>
+      {/* Figure 1 */}
+      <mesh position={[-0.15, -0.5, 0]}>
+        <capsuleGeometry args={[0.08, 0.3, 4, 8]} />
+        <meshStandardMaterial color="#334455" roughness={0.8} />
+      </mesh>
+      {/* Figure 2 */}
+      <mesh position={[0.15, -0.5, 0]}>
+        <capsuleGeometry args={[0.08, 0.25, 4, 8]} />
+        <meshStandardMaterial color="#443355" roughness={0.8} />
       </mesh>
     </group>
   );

@@ -3,7 +3,9 @@ import { useMemories, type Memory } from "@/components/world/memories";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import type { Season } from "@/hooks/useSeason";
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 type Props = {
   phase: TimePhase;
@@ -18,6 +20,118 @@ const WATER_COLOR: Record<TimePhase, number> = {
   dusk: 0x554466,
   night: 0x111122,
 };
+
+function WaterPlane({ phase }: { phase: TimePhase }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const geo = ref.current.geometry as THREE.PlaneGeometry;
+    const pos = geo.attributes.position;
+    const t = clock.getElapsedTime();
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      pos.setZ(i, Math.sin(x * 1.5 + t * 0.8) * 0.04 + Math.cos(y * 2 + t * 0.6) * 0.03);
+    }
+    pos.needsUpdate = true;
+  });
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, -3]} receiveShadow>
+      <planeGeometry args={[14, 8, 32, 32]} />
+      <meshStandardMaterial
+        color={WATER_COLOR[phase]}
+        roughness={0.1}
+        metalness={0.4}
+        transparent
+        opacity={0.85}
+      />
+    </mesh>
+  );
+}
+
+function LilyPad({ position, index }: { position: [number, number, number]; index: number }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    ref.current.position.y = position[1] + Math.sin(t * 0.5 + index * 1.5) * 0.02;
+    ref.current.rotation.z = Math.sin(t * 0.3 + index) * 0.05;
+  });
+  return (
+    <group ref={ref} position={position}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.15, 12, 0, Math.PI * 1.7]} />
+        <meshStandardMaterial color="#3a6a3a" roughness={0.6} side={2} />
+      </mesh>
+    </group>
+  );
+}
+
+function StringLight({
+  position,
+  isNight,
+  index,
+}: {
+  position: [number, number, number];
+  isNight: boolean;
+  index: number;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    const mat = ref.current.material as THREE.MeshBasicMaterial;
+    mat.opacity = isNight
+      ? 0.6 + Math.sin(t * 2 + index * 1.2) * 0.4
+      : 0.2 + Math.sin(t * 1.5 + index * 1.2) * 0.1;
+  });
+  return (
+    <group position={position}>
+      <mesh ref={ref}>
+        <sphereGeometry args={[0.04, 8, 8]} />
+        <meshBasicMaterial
+          color={isNight ? "#ffcc66" : "#ffffee"}
+          transparent
+          opacity={isNight ? 0.8 : 0.3}
+        />
+      </mesh>
+      {isNight && <pointLight intensity={0.15} color={0xffcc66} distance={2} decay={2} />}
+    </group>
+  );
+}
+
+function PaperBoat({
+  memory,
+  index,
+  onAdd,
+  onView,
+}: {
+  memory: Memory;
+  index: number;
+  onAdd: (p: { x: number; y: number }) => void;
+  onView: (m: Memory) => void;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    ref.current.position.y = -0.02 + Math.sin(t * 0.4 + index * 1.3) * 0.015;
+    ref.current.rotation.y = Math.sin(t * 0.2 + index * 0.7) * 0.15;
+  });
+  return (
+    <group ref={ref} position={[-1.5 + index * 0.8, -0.02, -1.5 - index * 0.3]}>
+      <mesh onClick={() => onView(memory)} rotation={[-Math.PI / 2, 0, index * 0.3]}>
+        <coneGeometry args={[0.08, 0.2, 4]} />
+        <meshStandardMaterial color="#f5f0e0" roughness={0.5} />
+      </mesh>
+      <Html distanceFactor={6} style={{ pointerEvents: "none" }}>
+        <div className="max-w-[50px] truncate text-[7px] text-amber-100/50 serif">
+          {memory.title}
+        </div>
+      </Html>
+    </group>
+  );
+}
 
 export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
   const { items } = useMemories("lake");
@@ -48,16 +162,7 @@ export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
       </mesh>
 
       {/* Water surface */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, -3]} receiveShadow>
-        <planeGeometry args={[14, 8]} />
-        <meshStandardMaterial
-          color={WATER_COLOR[phase]}
-          roughness={0.1}
-          metalness={0.4}
-          transparent
-          opacity={0.85}
-        />
-      </mesh>
+      <WaterPlane phase={phase} />
 
       {/* Dock */}
       <mesh position={[0, 0.1, -0.5]} castShadow>
@@ -97,17 +202,7 @@ export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
         [0, 1.3, 0],
         [0.5, 1.2, -0.5],
       ].map((pos, i) => (
-        <group key={i} position={pos as [number, number, number]}>
-          <mesh>
-            <sphereGeometry args={[0.04, 8, 8]} />
-            <meshBasicMaterial
-              color={isNight ? "#ffcc66" : "#ffffee"}
-              transparent
-              opacity={isNight ? 0.8 : 0.3}
-            />
-          </mesh>
-          {isNight && <pointLight intensity={0.15} color={0xffcc66} distance={2} decay={2} />}
-        </group>
+        <StringLight key={i} position={pos as [number, number, number]} isNight={isNight} index={i} />
       ))}
 
       {/* Trees on shore */}
@@ -129,14 +224,11 @@ export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
 
       {/* Lily pads on water */}
       {Array.from({ length: 6 }).map((_i, i) => (
-        <mesh
+        <LilyPad
           key={i}
           position={[-2 + i * 0.8, -0.05, -2 - (i % 3) * 0.5]}
-          rotation={[-Math.PI / 2, 0, i * 0.5]}
-        >
-          <circleGeometry args={[0.15, 12, 0, Math.PI * 1.7]} />
-          <meshStandardMaterial color="#3a6a3a" roughness={0.6} side={2} />
-        </mesh>
+          index={i}
+        />
       ))}
 
       {/* Moon reflection (night) */}
@@ -175,18 +267,7 @@ export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
 
       {/* Paper boat memories */}
       {items?.slice(0, 5).map((m, i) => (
-        <group key={m.id} position={[-1.5 + i * 0.8, -0.02, -1.5 - i * 0.3]}>
-          {/* Simple boat shape */}
-          <mesh onClick={() => onView(m)} rotation={[-Math.PI / 2, 0, i * 0.3]}>
-            <coneGeometry args={[0.08, 0.2, 4]} />
-            <meshStandardMaterial color="#f5f0e0" roughness={0.5} />
-          </mesh>
-          <Html distanceFactor={6} style={{ pointerEvents: "none" }}>
-            <div className="max-w-[50px] truncate text-[7px] text-amber-100/50 serif">
-              {m.title}
-            </div>
-          </Html>
-        </group>
+        <PaperBoat key={m.id} memory={m} index={i} onAdd={onAdd} onView={onView} />
       ))}
 
       {/* Click water to add */}
