@@ -8,6 +8,7 @@ import type { TimePhase } from "@/hooks/useTimeOfDay";
 import { Html } from "@react-three/drei";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { RealCat } from "@/components/world/RealCat";
 
 type Props = {
   phase: TimePhase;
@@ -226,12 +227,71 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
         <boxGeometry args={[0.01, 2, 0.01]} />
         <meshStandardMaterial color="#2a1a1a" roughness={0.8} />
       </mesh>
+      {/* Wardrobe handles */}
+      <mesh position={[-3 + 0.25, 1.1, -2.18]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.15, 6]} />
+        <meshStandardMaterial color="#8a7a5a" metalness={0.5} roughness={0.3} />
+      </mesh>
+      <mesh position={[-3 - 0.25, 1.1, -2.18]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.15, 6]} />
+        <meshStandardMaterial color="#8a7a5a" metalness={0.5} roughness={0.3} />
+      </mesh>
+
+      {/* Dressing chair */}
+      <group position={[3, 0, 0.7]} rotation={[0, -0.3, 0]}>
+        <mesh position={[0, 0.4, 0]} castShadow>
+          <boxGeometry args={[0.45, 0.06, 0.45]} />
+          <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+        </mesh>
+        <mesh position={[0, 0.46, 0]}>
+          <boxGeometry args={[0.4, 0.04, 0.4]} />
+          <meshStandardMaterial color="#6a4a5a" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.7, -0.2]} castShadow>
+          <boxGeometry args={[0.45, 0.5, 0.05]} />
+          <meshStandardMaterial color="#3a2a3a" roughness={0.7} />
+        </mesh>
+        {[[-0.18, -0.18], [-0.18, 0.18], [0.18, -0.18], [0.18, 0.18]].map(([x, z], i) => (
+          <mesh key={`chair-leg-${i}`} position={[x, 0.18, z]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.36, 6]} />
+            <meshStandardMaterial color="#2a1a2a" roughness={0.8} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Ceiling pendant light */}
+      <group position={[0, 2.9, -0.5]}>
+        <mesh>
+          <cylinderGeometry args={[0.01, 0.01, 0.4, 4]} />
+          <meshStandardMaterial color="#8a7a5a" metalness={0.4} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, -0.25, 0]}>
+          <coneGeometry args={[0.2, 0.15, 12, 1, true]} />
+          <meshStandardMaterial
+            color="#f5e8d0"
+            roughness={0.9}
+            side={THREE.DoubleSide}
+            transparent
+            opacity={0.85}
+          />
+        </mesh>
+        <pointLight
+          position={[0, -0.3, 0]}
+          intensity={isNight ? (bothOff ? 0 : 0.5) : 0.3}
+          color={0xffeedd}
+          distance={4}
+          decay={2}
+        />
+      </group>
 
       {/* Moon dust particles (night only) */}
       {isNight && <ProposalDust active={true} count={30} />}
 
       {/* Animated candle on dressing table */}
       <AnimatedCandle position={[3, 0.82, 0]} height={0.1} />
+
+      {/* Cat — sleeping on the bed at night */}
+      <RealCat location="bedroom" />
 
       {/* Throw blanket at foot of bed */}
       <mesh position={[0, 0.9, -0.2]} rotation={[0.05, 0, 0]} castShadow>

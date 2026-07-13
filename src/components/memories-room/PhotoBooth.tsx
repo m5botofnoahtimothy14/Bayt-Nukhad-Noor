@@ -33,7 +33,7 @@ function getRandomMessage(): string {
 export function PhotoBooth({ onCapture, onClose }: PhotoBoothProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [phase, setPhase] = useState<"intro" | "counting" | "flash" | "developing" | "done">("intro");
+  const [phase, setPhase] = useState<"intro" | "loading" | "counting" | "flash" | "developing" | "done">("intro");
   const [countdown, setCountdown] = useState(3);
   const [currentPhoto, setCurrentPhoto] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -48,6 +48,7 @@ export function PhotoBooth({ onCapture, onClose }: PhotoBoothProps) {
   }, [stream]);
 
   const startCamera = useCallback(async () => {
+    setPhase("loading");
     try {
       const s = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: "user" },
@@ -61,7 +62,8 @@ export function PhotoBooth({ onCapture, onClose }: PhotoBoothProps) {
       setPhase("counting");
       startCountdown(s);
     } catch {
-      setError("Camera access needed for the photo booth.");
+      setError("Camera access needed for the photo booth. Please allow camera access and try again.");
+      setPhase("intro");
     }
   }, []);
 
@@ -177,9 +179,24 @@ export function PhotoBooth({ onCapture, onClose }: PhotoBoothProps) {
         {error && (
           <div className="text-center">
             <p className="text-sm text-red-400 serif italic mb-4">{error}</p>
-            <button onClick={onClose} className="rounded-full bg-white/10 px-6 py-2 text-sm text-foreground hover:bg-white/20 transition-all">
-              Close
-            </button>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { setError(null); startCamera(); }}
+                className="rounded-full bg-white/10 px-6 py-2 text-sm text-foreground hover:bg-white/20 transition-all"
+              >
+                Try Again
+              </button>
+              <button onClick={onClose} className="rounded-full bg-white/10 px-6 py-2 text-sm text-foreground hover:bg-white/20 transition-all">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!error && phase === "loading" && (
+          <div className="text-center" style={{ animation: "fade-up 0.3s ease-out both" }}>
+            <div className="w-12 h-12 mx-auto mb-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <p className="text-sm text-muted-foreground serif italic">Opening camera...</p>
           </div>
         )}
 

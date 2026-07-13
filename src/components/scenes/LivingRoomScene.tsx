@@ -393,6 +393,93 @@ export function LivingRoomScene({ phase, onOpen, onView }: Props) {
         </mesh>
       </group>
 
+      {/* ── TV entertainment unit (against left wall) ── */}
+      <group position={[-3.8, 0, 2]}>
+        {/* TV stand / media console */}
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <boxGeometry args={[0.5, 0.7, 1.2]} />
+          <meshStandardMaterial color="#3a2a1a" roughness={0.8} />
+        </mesh>
+        {/* Cabinet doors */}
+        {[-0.35, 0.35].map((z, i) => (
+          <mesh key={`tv-door-${i}`} position={[0.26, 0.35, z]}>
+            <boxGeometry args={[0.01, 0.5, 0.45]} />
+            <meshStandardMaterial color="#4a3a2a" roughness={0.7} />
+          </mesh>
+        ))}
+        {/* Door handles */}
+        {[-0.35, 0.35].map((z, i) => (
+          <mesh key={`tv-handle-${i}`} position={[0.27, 0.35, z + 0.15]}>
+            <cylinderGeometry args={[0.008, 0.008, 0.08, 6]} />
+            <meshStandardMaterial color="#8a7a5a" metalness={0.5} roughness={0.3} />
+          </mesh>
+        ))}
+        {/* TV screen */}
+        <mesh position={[0, 1.0, 0]} castShadow>
+          <boxGeometry args={[0.04, 0.65, 1.0]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.2} metalness={0.3} />
+        </mesh>
+        {/* TV screen surface (dark when off, slight glow when on) */}
+        <mesh position={[0.025, 1.0, 0]}>
+          <planeGeometry args={[0.6, 0.95]} />
+          <meshStandardMaterial
+            color="#0a0a15"
+            emissive="#1a1a3a"
+            emissiveIntensity={phase === "night" ? 0.1 : 0.02}
+            roughness={0.1}
+            metalness={0.4}
+          />
+        </mesh>
+        {/* TV stand / neck */}
+        <mesh position={[0, 0.72, 0]}>
+          <boxGeometry args={[0.04, 0.04, 0.15]} />
+          <meshStandardMaterial color="#2a2a2a" metalness={0.4} roughness={0.5} />
+        </mesh>
+        {/* Soundbar */}
+        <mesh position={[0, 0.76, 0]}>
+          <boxGeometry args={[0.06, 0.04, 0.6]} />
+          <meshStandardMaterial color="#2a2a2a" roughness={0.3} metalness={0.2} />
+        </mesh>
+      </group>
+
+      {/* ── Armchair (reading chair near fireplace) ── */}
+      <group position={[2.2, 0, 0.3]} rotation={[0, -0.6, 0]}>
+        {/* Seat */}
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <boxGeometry args={[0.6, 0.1, 0.6]} />
+          <meshStandardMaterial color="#5a3a2a" roughness={0.85} />
+        </mesh>
+        {/* Cushion */}
+        <mesh position={[0, 0.43, 0]}>
+          <boxGeometry args={[0.52, 0.06, 0.52]} />
+          <meshStandardMaterial color="#8a6a5a" roughness={0.9} />
+        </mesh>
+        {/* Back */}
+        <mesh position={[0, 0.65, -0.25]} castShadow>
+          <boxGeometry args={[0.6, 0.5, 0.1]} />
+          <meshStandardMaterial color="#4a2a1a" roughness={0.85} />
+        </mesh>
+        {/* Armrests */}
+        {[-0.28, 0.28].map((x, i) => (
+          <mesh key={`arm-${i}`} position={[x, 0.5, 0]}>
+            <boxGeometry args={[0.08, 0.2, 0.55]} />
+            <meshStandardMaterial color="#4a2a1a" roughness={0.85} />
+          </mesh>
+        ))}
+        {/* Legs */}
+        {[[-0.22, -0.22], [-0.22, 0.22], [0.22, -0.22], [0.22, 0.22]].map(([x, z], i) => (
+          <mesh key={`achair-leg-${i}`} position={[x, 0.14, z]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.28, 6]} />
+            <meshStandardMaterial color="#3a2a1a" roughness={0.8} />
+          </mesh>
+        ))}
+        {/* Throw pillow */}
+        <mesh position={[-0.1, 0.55, -0.1]} rotation={[0.1, 0.3, 0.1]}>
+          <boxGeometry args={[0.2, 0.2, 0.06]} />
+          <meshStandardMaterial color="#aa7755" roughness={0.9} />
+        </mesh>
+      </group>
+
       <AnimatedCandle position={[-4.2, 1.5, 0]} />
       <AnimatedCandle position={[4.2, 1.5, 0]} />
 

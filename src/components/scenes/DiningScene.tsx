@@ -442,6 +442,90 @@ export function DiningScene({ phase, onOpen, onView }: Props) {
       {/* Fireflies — warm ambient glow */}
       <Fireflies count={6} area={[3, 1.5, 2]} color="#ffdd88" />
 
+      {/* ── China cabinet / display hutch ── */}
+      <group position={[-3.5, 0, -2.3]}>
+        {/* Cabinet body */}
+        <mesh position={[0, 1.2, 0]} castShadow>
+          <boxGeometry args={[1.0, 2.4, 0.5]} />
+          <meshStandardMaterial color="#4a3020" roughness={0.8} />
+        </mesh>
+        {/* Glass doors (upper) */}
+        {[-0.22, 0.22].map((x, i) => (
+          <mesh key={`china-door-${i}`} position={[x, 1.5, 0.26]}>
+            <boxGeometry args={[0.38, 0.9, 0.02]} />
+            <meshStandardMaterial color="#aabbcc" transparent opacity={0.15} roughness={0.1} metalness={0.2} />
+          </mesh>
+        ))}
+        {/* Shelves inside */}
+        {[1.1, 1.5, 1.9].map((y, i) => (
+          <mesh key={`china-shelf-${i}`} position={[0, y, 0]}>
+            <boxGeometry args={[0.9, 0.02, 0.4]} />
+            <meshStandardMaterial color="#5a4030" roughness={0.8} />
+          </mesh>
+        ))}
+        {/* Plates on shelves */}
+        {[1.15, 1.55].map((y, i) =>
+          [-0.2, 0, 0.2].map((x, j) => (
+            <mesh key={`plate-${i}-${j}`} position={[x, y, 0.05]} rotation={[0.1, 0, 0]}>
+              <cylinderGeometry args={[0.08, 0.08, 0.005, 12]} />
+              <meshStandardMaterial color="#f5f0e8" roughness={0.3} />
+            </mesh>
+          ))
+        )}
+        {/* Lower cabinet doors */}
+        {[-0.22, 0.22].map((x, i) => (
+          <mesh key={`china-lower-${i}`} position={[x, 0.55, 0.26]}>
+            <boxGeometry args={[0.38, 0.8, 0.02]} />
+            <meshStandardMaterial color="#4a3020" roughness={0.8} />
+          </mesh>
+        ))}
+        {/* Door handles */}
+        {[-0.08, 0.08].map((x, i) => (
+          <mesh key={`china-handle-${i}`} position={[x, 0.55, 0.28]}>
+            <sphereGeometry args={[0.015, 6, 6]} />
+            <meshStandardMaterial color="#8a7a5a" metalness={0.5} roughness={0.3} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* ── Wall clock (back wall, right side) ── */}
+      <group position={[3, 2.3, -2.9]}>
+        {/* Clock face */}
+        <mesh>
+          <circleGeometry args={[0.2, 32]} />
+          <meshStandardMaterial color="#f5f0e0" roughness={0.5} />
+        </mesh>
+        {/* Clock rim */}
+        <mesh position={[0, 0, -0.01]}>
+          <ringGeometry args={[0.19, 0.22, 32]} />
+          <meshStandardMaterial color="#6a4a30" roughness={0.6} />
+        </mesh>
+        {/* Hour markers */}
+        {Array.from({ length: 12 }).map((_, i) => {
+          const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+          return (
+            <mesh key={`marker-${i}`} position={[Math.cos(angle) * 0.16, Math.sin(angle) * 0.16, 0.01]}>
+              <sphereGeometry args={[0.008, 4, 4]} />
+              <meshBasicMaterial color="#4a3a2a" />
+            </mesh>
+          );
+        })}
+        {/* Clock hands */}
+        <mesh position={[0, 0, 0.015]} rotation={[0, 0, -0.8]}>
+          <boxGeometry args={[0.005, 0.12, 0.005]} />
+          <meshBasicMaterial color="#3a2a1a" />
+        </mesh>
+        <mesh position={[0, 0, 0.02]} rotation={[0, 0, -2.1]}>
+          <boxGeometry args={[0.003, 0.15, 0.003]} />
+          <meshBasicMaterial color="#3a2a1a" />
+        </mesh>
+        {/* Center dot */}
+        <mesh position={[0, 0, 0.025]}>
+          <sphereGeometry args={[0.008, 6, 6]} />
+          <meshBasicMaterial color="#8a7a5a" />
+        </mesh>
+      </group>
+
       {/* Photo form hotspot — window area */}
       <mesh position={[3, 1.8, -2]} onClick={() => onOpen("photo")}>
         <boxGeometry args={[0.8, 1.2, 0.05]} />

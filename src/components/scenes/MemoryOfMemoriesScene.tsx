@@ -301,8 +301,22 @@ function WoodenDesk({ onClickCamera }: { onClickCamera: () => void }) {
           <cylinderGeometry args={[0.04, 0.04, 0.06, 12]} />
           <meshStandardMaterial color="#222" roughness={0.3} metalness={0.4} />
         </mesh>
-        <Html position={[0, 0.2, 0]} distanceFactor={4} style={{ pointerEvents: "none" }}>
-          <div className="text-[8px] text-amber-200/40 serif italic whitespace-nowrap">click the camera</div>
+        {/* Flash */}
+        <mesh position={[-0.05, 0.07, 0]}>
+          <boxGeometry args={[0.04, 0.03, 0.1]} />
+          <meshStandardMaterial color="#ddd" roughness={0.2} metalness={0.1} />
+        </mesh>
+        <Html position={[0, 0.25, 0]} distanceFactor={4} style={{ pointerEvents: "none" }}>
+          <div
+            className="text-[11px] text-amber-200/90 serif italic whitespace-nowrap px-2 py-0.5 rounded"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(4px)",
+              textShadow: "0 0 8px rgba(255,180,60,0.5)",
+            }}
+          >
+            click to take a photo
+          </div>
         </Html>
       </group>
       {/* Books stack */}
@@ -449,7 +463,7 @@ export function MemoryOfMemoriesScene({ phase, season, weather }: Props) {
       {/* Photo booth overlay */}
       {boothOpen && (
         <PhotoBooth
-          onCapture={() => {}}
+          onCapture={(strip) => setBoothOpen(false)}
           onClose={() => setBoothOpen(false)}
         />
       )}
