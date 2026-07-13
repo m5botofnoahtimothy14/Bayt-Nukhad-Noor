@@ -83,7 +83,24 @@ export function RealCat({ location, phase, season, weather }: Props) {
   const [tailPhase, setTailPhase] = useState(0);
 
   // Clone the GLTF scene so we can safely attach animations.
-  const catScene = useMemo(() => scene.clone(true), [scene]);
+  // The source GLTF contains 3 cat meshes (Cat01/Cat02/Cat03) and a pCube1 base —
+  // keep only Cat01 and drop the rest.
+  const catScene = useMemo(() => {
+    const s = scene.clone(true);
+    s.traverse((child) => {
+      const name = child.name || "";
+      if (
+        name.includes("Cat02") ||
+        name.includes("Cat03") ||
+        name.includes("pCube") ||
+        name.includes("fat_cat_white1") ||
+        name.includes("fat_cat_white2")
+      ) {
+        child.visible = false;
+      }
+    });
+    return s;
+  }, [scene]);
 
   useEffect(() => {
     // doorOpened gates ability to start name editing.
