@@ -1,4 +1,5 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
