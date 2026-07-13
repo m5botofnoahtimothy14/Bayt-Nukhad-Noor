@@ -7,6 +7,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { AnimatedCandle, Fireflies, FallingLeaves } from "@/components/world/AnimatedElements";
+import { RealCat } from "@/components/world/RealCat";
 
 type Props = {
   phase: TimePhase;
@@ -201,6 +202,9 @@ export function LivingRoomScene({ phase, onOpen, onView }: Props) {
           </group>
         );
       })}
+
+      {/* ── Animated cat ── */}
+      <RealCat position={[2.5, 0, 1.5]} />
     </group>
   );
 }

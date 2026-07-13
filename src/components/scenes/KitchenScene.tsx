@@ -5,6 +5,7 @@ import { useSharedState } from "@/hooks/useSharedState";
 import { useVinylAudio } from "@/hooks/useVinylAudio";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import { AnimatedCandle } from "@/components/world/AnimatedElements";
+import { RealCat } from "@/components/world/RealCat";
 import { Html } from "@react-three/drei";
 
 type Props = {
@@ -202,6 +203,9 @@ export function KitchenScene({ phase, onOpen, onView }: Props) {
         <coneGeometry args={[0.15, 0.2, 8]} />
         <meshStandardMaterial color="#3a3020" roughness={0.6} />
       </mesh>
+
+      {/* ── Animated cat ── */}
+      <RealCat position={[-2, 0, 0]} />
     </group>
   );
 }

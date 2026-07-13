@@ -1,44 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-
-const TRACK_URLS = [
-  "https://cdn.pixabay.com/audio/2024/11/28/audio_3a3b8b8b8b.mp3",
-  "https://cdn.pixabay.com/audio/2024/10/15/audio_7b8c9d0e1f.mp3",
-  "https://cdn.pixabay.com/audio/2024/09/22/audio_f6a5b7c8d9.mp3",
-  "https://cdn.pixabay.com/audio/2024/08/12/audio_e1f2a3b4c5.mp3",
-  "https://cdn.pixabay.com/audio/2024/07/03/audio_d9e8f7a6b5.mp3",
-  "https://cdn.pixabay.com/audio/2024/06/14/audio_c5d4e3f2a1.mp3",
-];
+import { useCallback, useRef, useState } from "react";
+import { VINYL_TRACKS, SONGS } from "@/lib/musicCatalog";
+import { playSong, stopAll, isPlaying as engineIsPlaying } from "@/lib/audioEngine";
 
 export function useVinylAudio() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
+  const currentSrcRef = useRef("");
 
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-      audioRef.current = null;
-    };
+  const play = useCallback((idx: number) => {
+    const track = VINYL_TRACKS[idx % VINYL_TRACKS.length];
+    const src = SONGS[track.key];
+    currentSrcRef.current = src;
+
+    playSong(src, {
+      fadeInMs: 1500,
+      volume: 0.3,
+      loop: true,
+    });
+    setPlaying(true);
+    setTrackIdx(idx);
   }, []);
 
-  const play = useCallback(
-    (idx: number) => {
-      const url = TRACK_URLS[idx % TRACK_URLS.length];
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-        audioRef.current.volume = 0.3;
-        audioRef.current.loop = true;
-      }
-      audioRef.current.src = url;
-      audioRef.current.play().catch(() => {});
-      setPlaying(true);
-      setTrackIdx(idx);
-    },
-    [],
-  );
-
   const pause = useCallback(() => {
-    audioRef.current?.pause();
+    stopAll(800);
     setPlaying(false);
   }, []);
 

@@ -1,60 +1,65 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
+import {
+  playSong,
+  stopAll,
+  setMasterVolume,
+  getCurrentAudio,
+} from "@/lib/audioEngine";
+import { SONGS, PROPOSAL_MUSIC } from "@/lib/musicCatalog";
 
 type AudioChannel = "ambience" | "piano" | "strings" | "footsteps" | "candles";
 
-type AudioHandle = {
-  play: () => void;
-  pause: () => void;
-  setVolume: (v: number) => void;
-  fadeIn: (duration: number) => void;
-  fadeOut: (duration: number) => void;
-};
-
-function createSilentHandle(): AudioHandle {
-  return {
-    play: () => {},
-    pause: () => {},
-    setVolume: () => {},
-    fadeIn: () => {},
-    fadeOut: () => {},
-  };
-}
-
 export function useProposalAudio() {
-  const channels = useRef<Record<AudioChannel, AudioHandle>>({
-    ambience: createSilentHandle(),
-    piano: createSilentHandle(),
-    strings: createSilentHandle(),
-    footsteps: createSilentHandle(),
-    candles: createSilentHandle(),
-  });
-
   const playAmbience = useCallback(() => {
-    channels.current.ambience.play();
+    // Dreamy background — "My Love Mine All Mine"
+    playSong(SONGS[PROPOSAL_MUSIC.ambience], {
+      fadeInMs: 4000,
+      volume: PROPOSAL_MUSIC.volume,
+      loop: true,
+    });
   }, []);
 
   const playPiano = useCallback(() => {
-    channels.current.piano.fadeIn(2);
+    // Elegant piano — "Clair de Lune"
+    playSong(SONGS[PROPOSAL_MUSIC.piano], {
+      fadeInMs: 3000,
+      volume: PROPOSAL_MUSIC.volume * 0.9,
+      loop: true,
+    });
   }, []);
 
   const playStrings = useCallback(() => {
-    channels.current.strings.fadeIn(3);
+    // Strings / orchestral layer
+    playSong(SONGS[PROPOSAL_MUSIC.piano], {
+      fadeInMs: 5000,
+      volume: PROPOSAL_MUSIC.volume * 1.1,
+      loop: true,
+    });
   }, []);
 
   const playFootsteps = useCallback(() => {
-    channels.current.footsteps.play();
+    // No separate footsteps — they're part of the cinematic
   }, []);
 
   const playCandleCrackle = useCallback(() => {
-    channels.current.candles.play();
+    // No separate candle sound — ambient music covers it
+  }, []);
+
+  const playClimax = useCallback(() => {
+    // Climax song — "Kesariya" — the romantic Bollywood moment
+    playSong(SONGS[PROPOSAL_MUSIC.climax], {
+      fadeInMs: 3000,
+      volume: PROPOSAL_MUSIC.volume * 1.2,
+      loop: true,
+    });
   }, []);
 
   const fadeAll = useCallback((duration: number) => {
-    Object.values(channels.current).forEach((ch) => ch.fadeOut(duration));
+    stopAll(duration);
   }, []);
 
   const setMasterVolume = useCallback((v: number) => {
-    Object.values(channels.current).forEach((ch) => ch.setVolume(v));
+    setMasterVolume(v);
   }, []);
 
   return {
@@ -63,6 +68,7 @@ export function useProposalAudio() {
     playStrings,
     playFootsteps,
     playCandleCrackle,
+    playClimax,
     fadeAll,
     setMasterVolume,
   };

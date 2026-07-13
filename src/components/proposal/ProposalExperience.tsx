@@ -110,20 +110,19 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
 
   const audio = useProposalAudio();
 
-  // Audio cues
+  // Audio cues — cinematic music progression
   useEffect(() => {
     if (phase === "darkness") {
-      audio.playAmbience();
-    }
-    if (phase === "first-candle") {
-      audio.playCandleCrackle();
+      audio.playAmbience(); // dreamy background
     }
     if (phase === "candle-walk") {
-      audio.playPiano();
-      audio.playFootsteps();
+      audio.playPiano(); // elegant piano for the walk
     }
     if (phase === "room-awakens") {
-      audio.playStrings();
+      audio.playStrings(); // swell
+    }
+    if (phase === "yes-path" || phase === "welcome-text") {
+      audio.playClimax(); // romantic Bollywood climax — "Kesariya"
     }
   }, [phase, audio]);
 

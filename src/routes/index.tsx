@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useOpeningMusic } from "@/hooks/useOpeningMusic";
 
 const PortalCanvas = lazy(() =>
   import("@/components/portal/PortalCanvas").then((m) => ({ default: m.PortalCanvas })),
@@ -29,25 +30,29 @@ function Portal() {
     });
   }, [navigate]);
 
-  // Auto-advance intro
+  // ─── Slower intro timing — let each meaning breathe ───
   useEffect(() => {
     if (phase === "intro-1") {
-      const t = setTimeout(() => setPhase("intro-2"), 3800);
+      const t = setTimeout(() => setPhase("intro-2"), 6000); // Title: 6s
       return () => clearTimeout(t);
     }
     if (phase === "intro-2") {
-      const t = setTimeout(() => setPhase("intro-3"), 5000);
+      const t = setTimeout(() => setPhase("intro-3"), 7000); // "A name born": 7s
       return () => clearTimeout(t);
     }
     if (phase === "intro-3") {
-      const t = setTimeout(() => setPhase("intro-4"), 5500);
+      const t = setTimeout(() => setPhase("intro-4"), 10000); // Word meanings: 10s
       return () => clearTimeout(t);
     }
     if (phase === "intro-4") {
-      const t = setTimeout(() => setPhase("waiting"), 4200);
+      const t = setTimeout(() => setPhase("waiting"), 7000); // "A home": 7s
       return () => clearTimeout(t);
     }
   }, [phase]);
+
+  // ─── Opening music — sacred, slow fade-in ───
+  const introActive = phase.startsWith("intro") || phase === "waiting";
+  useOpeningMusic(introActive && checked);
 
   const skip = useCallback(() => {
     if (phase.startsWith("intro")) setPhase("waiting");
@@ -55,19 +60,14 @@ function Portal() {
 
   const openDoors = useCallback(() => {
     if (phase !== "waiting") return;
-    // Persist so the GLTF cat can gate rename until doors are opened.
     try {
       localStorage.setItem("bayt-door-opened", "true");
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
 
     setPhase("opening");
     setTimeout(() => setPhase("entered"), 3200);
   }, [phase]);
 
-
-  const introActive = phase.startsWith("intro");
 
   return (
     <div className="scene scene-3d overflow-hidden bg-black">
@@ -97,7 +97,7 @@ function Portal() {
           onClick={skip}
         >
           {phase === "intro-1" && (
-            <div style={{ animation: "intro-fade 3.8s ease-in-out both" }}>
+            <div style={{ animation: "intro-fade 6s ease-in-out both" }}>
               <p
                 className="serif text-xs uppercase tracking-[0.7em] mb-6"
                 style={{ color: "oklch(0.75 0.10 30 / 70%)" }}
@@ -119,7 +119,7 @@ function Portal() {
                 className="serif italic mt-8 text-lg md:text-xl"
                 style={{
                   color: "oklch(0.85 0.05 30 / 75%)",
-                  animation: "intro-fade 3.8s ease-in-out 1s both",
+                  animation: "intro-fade 6s ease-in-out 1.5s both",
                 }}
               >
                 بيت نوخد نور
@@ -129,7 +129,7 @@ function Portal() {
 
           {phase === "intro-2" && (
             <div
-              style={{ animation: "intro-fade 5s ease-in-out both", maxWidth: "38rem" }}
+              style={{ animation: "intro-fade 7s ease-in-out both", maxWidth: "38rem" }}
             >
               <p
                 className="serif italic text-xl md:text-2xl leading-relaxed"
@@ -144,8 +144,8 @@ function Portal() {
 
           {phase === "intro-3" && (
             <div
-              className="space-y-6"
-              style={{ animation: "intro-fade 5.5s ease-in-out both", maxWidth: "34rem" }}
+              className="space-y-8"
+              style={{ animation: "intro-fade 10s ease-in-out both", maxWidth: "34rem" }}
             >
               <IntroWord
                 arabic="بيت"
@@ -157,19 +157,19 @@ function Portal() {
                 arabic="نوخد"
                 latin="Nūkhad"
                 meaning="A fusion of Nūḥ and Khadija — the two who created this world."
-                delay={1.2}
+                delay={1.8}
               />
               <IntroWord
                 arabic="نور"
                 latin="Noor"
                 meaning="Light — guidance, warmth, and hope across distance."
-                delay={2.4}
+                delay={3.6}
               />
             </div>
           )}
 
           {phase === "intro-4" && (
-            <div style={{ animation: "intro-fade 4.2s ease-in-out both", maxWidth: "36rem" }}>
+            <div style={{ animation: "intro-fade 7s ease-in-out both", maxWidth: "36rem" }}>
               <p
                 className="serif italic text-lg md:text-xl leading-relaxed"
                 style={{ color: "oklch(0.90 0.04 25 / 90%)" }}
@@ -369,7 +369,7 @@ function IntroWord({
   return (
     <div
       className="flex flex-col items-center gap-1"
-      style={{ animation: `intro-word 1.2s ease-out ${delay}s both` }}
+      style={{ animation: `intro-word 1.8s ease-out ${delay}s both` }}
     >
       <div className="flex items-baseline gap-4">
         <span

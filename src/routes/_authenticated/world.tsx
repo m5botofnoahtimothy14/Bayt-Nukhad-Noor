@@ -6,6 +6,7 @@ import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
 import { usePreloadModels } from "@/hooks/usePreloadModels";
+import { useSceneMusic } from "@/hooks/useSceneMusic";
 import { Cat } from "@/components/world/Cat";
 import { SceneCanvas } from "@/components/world/SceneCanvas";
 import { LoadingScreen } from "@/components/world/LoadingScreen";
@@ -263,6 +264,9 @@ function World() {
 
   // Preload 3D models on mount
   usePreloadModels();
+
+  // Scene music — crossfades between songs per room
+  useSceneMusic(loc);
 
   // #6: Notify when partner adds a memory elsewhere
   useMemoryNotifications(loc);
