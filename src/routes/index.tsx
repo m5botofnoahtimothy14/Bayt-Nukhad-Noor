@@ -71,10 +71,15 @@ function Portal() {
 
   return (
     <div className="scene scene-3d overflow-hidden bg-black">
-      {/* 3D canvas backdrop */}
-      <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
-        <PortalCanvas />
-      </Suspense>
+      {/* 3D canvas backdrop — fades out during door opening */}
+      <div
+        className="absolute inset-0 transition-opacity duration-[2500ms] ease-in-out"
+        style={{ opacity: phase === "opening" || phase === "entered" ? 0 : 1 }}
+      >
+        <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
+          <PortalCanvas />
+        </Suspense>
+      </div>
 
       {/* Vignette */}
       <div

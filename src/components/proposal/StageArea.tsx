@@ -71,25 +71,47 @@ function FairyLight({ position }: { position: [number, number, number] }) {
 
 function Scroll({ onClick }: { onClick: () => void }) {
   const ref = useRef<THREE.Group>(null);
+  const glowRef = useRef<THREE.PointLight>(null);
 
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
     if (ref.current) {
-      ref.current.position.y = 0.86 + Math.sin(clock.getElapsedTime() * 1.5) * 0.005;
+      ref.current.position.y = 0.88 + Math.sin(t * 1.5) * 0.008;
+      ref.current.rotation.y = Math.sin(t * 0.3) * 0.1;
+    }
+    if (glowRef.current) {
+      glowRef.current.intensity = 0.8 + Math.sin(t * 2) * 0.3;
     }
   });
 
   return (
-    <group ref={ref} position={[0, 0.86, -1]} onClick={onClick}>
-      {/* Parchment roll */}
+    <group ref={ref} position={[0, 0.88, -1]} onClick={onClick}>
+      {/* Parchment roll — large enough to see and click */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.025, 0.025, 0.22, 12]} />
-        <meshStandardMaterial color="#e8d8b8" roughness={0.7} />
+        <cylinderGeometry args={[0.08, 0.08, 0.6, 16]} />
+        <meshStandardMaterial color="#e8d8b8" roughness={0.6} />
       </mesh>
-      {/* Ribbon */}
+      {/* End caps */}
+      <mesh position={[-0.3, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <circleGeometry args={[0.08, 16]} />
+        <meshStandardMaterial color="#d8c8a8" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.3, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
+        <circleGeometry args={[0.08, 16]} />
+        <meshStandardMaterial color="#d8c8a8" roughness={0.7} />
+      </mesh>
+      {/* Burgundy ribbon */}
       <mesh position={[0, 0, 0]}>
-        <torusGeometry args={[0.03, 0.004, 6, 16]} />
-        <meshStandardMaterial color="#6a1a2a" roughness={0.5} />
+        <torusGeometry args={[0.1, 0.012, 8, 24]} />
+        <meshStandardMaterial color="#6a1a2a" roughness={0.4} />
       </mesh>
+      {/* Ribbon bow */}
+      <mesh position={[0, 0.08, 0]} rotation={[0.3, 0, 0]}>
+        <sphereGeometry args={[0.025, 8, 8]} />
+        <meshStandardMaterial color="#6a1a2a" roughness={0.4} />
+      </mesh>
+      {/* Warm glow to draw the eye */}
+      <pointLight ref={glowRef} color={0xffcc88} intensity={0.8} distance={2} decay={2} />
     </group>
   );
 }

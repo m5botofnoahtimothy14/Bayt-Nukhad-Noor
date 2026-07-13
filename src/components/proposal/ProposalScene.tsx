@@ -48,7 +48,7 @@ function CameraRig({
     const t = clock.getElapsedTime();
     // Walk from z=8 to z=2
     const targetZ = 8 - walkProgress * 6;
-    const targetY = 1.3 - walkProgress * 0.15;
+    const targetY = 1.3 - walkProgress * 0.2;
 
     // Handheld camera wobble
     const wobbleX = Math.sin(t * 1.2) * 0.015 * shake;
@@ -60,11 +60,12 @@ function CameraRig({
       targetZ,
     );
 
-    // Look ahead — gradually shift focus toward stage
-    const lookZ = -4 + (1 - walkProgress) * 4;
+    // Look ahead — at full progress, look directly at the scroll on the pedestal
+    const lookZ = -5 + (1 - walkProgress) * 5;
+    const lookY = walkProgress >= 0.95 ? 0.85 : 0.8 - walkProgress * 0.1;
     camera.lookAt(
-      wobbleX * 0.5,
-      0.8 - walkProgress * 0.1,
+      wobbleX * 0.3,
+      lookY,
       lookZ,
     );
   });

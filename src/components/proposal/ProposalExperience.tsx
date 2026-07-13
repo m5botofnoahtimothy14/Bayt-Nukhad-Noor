@@ -160,7 +160,12 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
         : brightness;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <motion.div
+      className="fixed inset-0 z-50 bg-black"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 2, ease: "easeInOut" }}
+    >
       {/* 3D scene */}
       <ProposalScene
         walkProgress={walkProgress}
@@ -207,6 +212,6 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
 
       {/* Welcome text */}
       <WelcomeOverlay text={welcomeText} visible={welcomeVisible} />
-    </div>
+    </motion.div>
   );
 }

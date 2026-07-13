@@ -4,6 +4,7 @@ import * as THREE from "three";
 
 /* ─── Cherry Blossom Petals ─── */
 export function CherryBlossoms({ count = 80, active = false }: { count?: number; active?: boolean }) {
+  if (!active) return null;
   const ref = useRef<THREE.InstancedMesh>(null);
   const particles = useMemo(
     () =>
@@ -56,6 +57,7 @@ export function CherryBlossoms({ count = 80, active = false }: { count?: number;
 
 /* ─── Rose Petals (deeper red, larger) ─── */
 export function RosePetals({ count = 50, active = false }: { count?: number; active?: boolean }) {
+  if (!active) return null;
   const ref = useRef<THREE.InstancedMesh>(null);
   const particles = useMemo(
     () =>
@@ -107,6 +109,7 @@ export function RosePetals({ count = 50, active = false }: { count?: number; act
 
 /* ─── Glowing Heart Shapes (elegant, not cartoon) ─── */
 export function GlowingHearts({ count = 15, active = false }: { count?: number; active?: boolean }) {
+  if (!active) return null;
   const ref = useRef<THREE.InstancedMesh>(null);
   const data = useMemo(
     () =>
@@ -165,6 +168,7 @@ export function GlowingHearts({ count = 15, active = false }: { count?: number; 
 
 /* ─── Floating Dust Particles ─── */
 export function ProposalDust({ count = 40, active = false }: { count?: number; active?: boolean }) {
+  if (!active) return null;
   const ref = useRef<THREE.InstancedMesh>(null);
   const particles = useMemo(
     () =>
