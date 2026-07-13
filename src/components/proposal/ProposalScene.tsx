@@ -37,6 +37,12 @@ type ProposalSceneProps = {
   onScrollClick: () => void;
 };
 
+/* Smooth exponential ease — feels like a real person walking */
+function smoothStep(edge0: number, edge1: number, x: number) {
+  const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
+  return t * t * (3 - 2 * t);
+}
+
 function CameraRig({
   walkProgress,
   shake,
@@ -45,33 +51,64 @@ function CameraRig({
   shake: number;
 }) {
   const { camera } = useThree();
-  const basePos = useRef(new THREE.Vector3(0, 1.3, 8));
-  const lookTarget = useRef(new THREE.Vector3(0, 0.8, -4));
+  const smoothPos = useRef(new THREE.Vector3(0, 1.3, 8));
+  const smoothLook = useRef(new THREE.Vector3(0, 0.85, 0));
+  const currentTilt = useRef(0);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    // Walk from z=8 to z=2
-    const targetZ = 8 - walkProgress * 6;
-    const targetY = 1.3 - walkProgress * 0.2;
 
-    // Handheld camera wobble
-    const wobbleX = Math.sin(t * 1.2) * 0.015 * shake;
-    const wobbleY = Math.sin(t * 1.7) * 0.01 * shake;
+    /* ── Target positions with cinematic easing ── */
+    // Walk from z=8 to z=-1.5 (close to the scroll for intimacy)
+    const easedProgress = smoothStep(0, 1, walkProgress);
+    const targetZ = 8 - easedProgress * 9.5;
+    // Gentle height shift: starts at 1.3, dips slightly mid-walk, rises to 1.2 at end
+    const targetY = 1.3 - Math.sin(easedProgress * Math.PI) * 0.1 + easedProgress * 0.05;
 
-    camera.position.set(
-      basePos.current.x + wobbleX,
-      targetY + wobbleY,
-      targetZ,
-    );
+    /* ── Handheld camera wobble — organic, not mechanical ── */
+    // Multiple sine waves at different frequencies for natural feel
+    const wobbleX = (
+      Math.sin(t * 1.1) * 0.6 +
+      Math.sin(t * 2.3 + 1.2) * 0.25 +
+      Math.sin(t * 0.7 + 0.5) * 0.15
+    ) * 0.012 * shake;
+    const wobbleY = (
+      Math.sin(t * 1.5 + 0.8) * 0.5 +
+      Math.sin(t * 3.1 + 2.0) * 0.3
+    ) * 0.008 * shake;
 
-    // Look ahead — at full progress, look directly at the scroll on the pedestal
-    const lookZ = -5 + (1 - walkProgress) * 5;
-    const lookY = walkProgress >= 0.95 ? 0.85 : 0.8 - walkProgress * 0.1;
-    camera.lookAt(
-      wobbleX * 0.3,
-      lookY,
-      lookZ,
-    );
+    /* ── Subtle breathing when stationary ── */
+    const breathing = walkProgress < 0.05
+      ? Math.sin(t * 0.8) * 0.003
+      : 0;
+
+    /* ── Camera tilt — slight roll during lateral movement ── */
+    const targetTilt = Math.sin(t * 0.9) * 0.003 * shake;
+    currentTilt.current += (targetTilt - currentTilt.current) * 0.03;
+
+    /* ── Smooth interpolation (lerp factor 0.035 = buttery smooth) ── */
+    const lerpFactor = 0.035;
+    smoothPos.current.x += (wobbleX - smoothPos.current.x + 0) * lerpFactor;
+    smoothPos.current.y += ((targetY + wobbleY + breathing) - smoothPos.current.y) * lerpFactor;
+    smoothPos.current.z += (targetZ - smoothPos.current.z) * lerpFactor;
+
+    camera.position.set(smoothPos.current.x, smoothPos.current.y, smoothPos.current.z);
+
+    /* ── Look-at target — smooth transition to scroll ── */
+    // When arrived, look directly at the scroll (world z=-5, y=1.1)
+    const lookZ = -5 + (1 - easedProgress) * 5;
+    const lookY = easedProgress > 0.9
+      ? 0.9 + Math.sin(t * 0.6) * 0.003 // subtle pulse when arrived
+      : 0.8 + easedProgress * 0.1;
+
+    smoothLook.current.x += (wobbleX * 0.2 - smoothLook.current.x) * lerpFactor;
+    smoothLook.current.y += (lookY - smoothLook.current.y) * lerpFactor;
+    smoothLook.current.z += (lookZ - smoothLook.current.z) * lerpFactor;
+
+    camera.lookAt(smoothLook.current);
+
+    /* ── Apply subtle roll for cinematic feel ── */
+    camera.rotation.z = currentTilt.current;
   });
 
   return null;
@@ -131,7 +168,7 @@ export function ProposalScene({
         antialias: true,
         alpha: false,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 0.5 + brightness * 1.0,
+        toneMappingExposure: 0.5 + brightness * 0.5,
       }}
       dpr={[1, 1.5]}
       shadows
@@ -143,12 +180,12 @@ export function ProposalScene({
       <CameraRig walkProgress={walkProgress} shake={cameraShake} />
 
       {/* Slightly brighter ambient for base fill */}
-      <ambientLight intensity={0.06 + brightness * 0.12} color="#f0eeff" />
+      <ambientLight intensity={0.04 + brightness * 0.06} color="#f0eeff" />
 
       {/* Directional key — subtle overall fill from above-front */}
       <directionalLight
         position={[2, 6, 4]}
-        intensity={0.3 + brightness * 0.4}
+        intensity={0.15 + brightness * 0.2}
         color="#fff8f0"
       />
 
@@ -169,13 +206,13 @@ export function ProposalScene({
 
       <EffectComposer multisampling={0}>
         <Bloom
-          intensity={0.35 + brightness * 0.3}
-          luminanceThreshold={0.55}
-          luminanceSmoothing={0.3}
+          intensity={0.15 + brightness * 0.1}
+          luminanceThreshold={0.7}
+          luminanceSmoothing={0.4}
           kernelSize={KernelSize.MEDIUM}
           mipmapBlur
         />
-        <Vignette eskil={false} offset={0.35} darkness={0.75} />
+        <Vignette eskil={false} offset={0.4} darkness={0.6} />
       </EffectComposer>
     </Canvas>
   );

@@ -103,8 +103,8 @@ export function useProposalSequence(onEnterHouse: () => void) {
           ...s,
           walkProgress: lerp(0, 0.7, progress),
           candlesLit: Math.floor(progress * 24),
-          cameraShake: 0.5 + progress * 0.5,
-          brightness: progress * 0.15,
+          cameraShake: 0.3 + progress * 0.3,
+          brightness: progress * 0.08,
         }));
         if (progress < 1) {
           walkAnimRef.current = requestAnimationFrame(animate);
@@ -130,7 +130,7 @@ export function useProposalSequence(onEnterHouse: () => void) {
           spotlightOn: progress > 0.3,
           particlesActive: progress > 0.4,
           blossomsActive: progress > 0.5,
-          brightness: lerp(0.15, 0.5, progress),
+          brightness: lerp(0.08, 0.25, progress),
         }));
         if (progress < 1) {
           walkAnimRef.current = requestAnimationFrame(animate);
@@ -147,8 +147,8 @@ export function useProposalSequence(onEnterHouse: () => void) {
       setState((s) => ({
         ...s,
         heartsActive: true,
-        brightness: 0.6,
-        cameraShake: 0.2,
+        brightness: 0.3,
+        cameraShake: 0.15,
       }));
       const t = setTimeout(advancePhase, PHASE_DURATIONS["stage-reveal"]);
       timeoutsRef.current.push(t);
@@ -189,7 +189,7 @@ export function useProposalSequence(onEnterHouse: () => void) {
         setState((s) => ({
           ...s,
           phase: "yes-path",
-          brightness: 0.9,
+          brightness: 0.45,
           heartsActive: true,
           blossomsActive: true,
           particlesActive: true,

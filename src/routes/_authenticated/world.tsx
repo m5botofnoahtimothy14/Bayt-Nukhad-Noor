@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeOfDay } from "@/hooks/useTimeOfDay";
@@ -248,15 +248,10 @@ function JournalPanel({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-/* ─── Scene loader fallback ─── */
-function SceneFallback() {
-  return null;
-}
-
 /* ─── Main World component ─── */
 function World() {
   const [loc, setLoc] = useState<Loc>("house");
-  const [sceneKey, setSceneKey] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
   const phase = useTimeOfDay();
   const season = useSeason();
   const weather = useWeather();
@@ -325,8 +320,12 @@ function World() {
 
   const switchScene = (newLoc: Loc) => {
     if (newLoc === loc) return;
-    setLoc(newLoc);
-    setSceneKey((k) => k + 1);
+    setTransitioning(true);
+    // Brief fade-out, then swap scene, then fade-in
+    setTimeout(() => {
+      setLoc(newLoc);
+      setTimeout(() => setTransitioning(false), 100);
+    }, 400);
   };
 
   const signOut = async () => {
@@ -358,17 +357,24 @@ function World() {
     <div className="scene">
       <LoadingScreen />
 
-      <div key={sceneKey} className="transition-opacity duration-500 ease-in-out">
+      {/* Persistent Canvas — never remounts */}
+      <div className="absolute inset-0">
         <SceneCanvas phase={phase} weather={weather.current}>
           <ModelErrorBoundary url="/gltf/cat/scene.gltf">
             <Cat location={loc} phase={phase} season={season} weather={weather.current} />
           </ModelErrorBoundary>
 
-          <Suspense fallback={<SceneFallback />}>
+          <Suspense fallback={null}>
             {sceneContent}
           </Suspense>
         </SceneCanvas>
       </div>
+
+      {/* Fade overlay for scene transitions — Canvas stays alive underneath */}
+      <div
+        className="absolute inset-0 z-30 pointer-events-none bg-black transition-opacity duration-500 ease-in-out"
+        style={{ opacity: transitioning ? 1 : 0 }}
+      />
 
       {/* Wish-on-a-star overlay (balcony + observatory) */}
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}

@@ -159,9 +159,9 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
   // Scene brightness ramp during yes-path
   const finalBrightness =
     phase === "yes-path"
-      ? 0.9
+      ? 0.5
       : phase === "time-path"
-        ? 0.7
+        ? 0.35
         : brightness;
 
   // 3D scroll opening + sparkles
