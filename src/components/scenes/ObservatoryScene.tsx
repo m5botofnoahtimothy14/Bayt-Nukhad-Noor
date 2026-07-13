@@ -106,7 +106,7 @@ export function ObservatoryScene({ season = "summer", onAdd, onView }: Props) {
       </mesh>
 
       {/* Memory stars */}
-      {items?.slice(0, 6).map((_m, i) => {
+      {items?.slice(0, 6).map((m, i) => {
         const angle = (i / 6) * Math.PI * 2 + 0.5;
         const r = 2 + (i % 2);
         return (

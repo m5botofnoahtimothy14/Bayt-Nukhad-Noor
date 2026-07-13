@@ -93,7 +93,7 @@ export function BalconyScene({ season: _season = "summer", onAdd, onView }: Prop
       />
 
       {/* Memory stars */}
-      {items?.slice(0, 8).map((_m, i) => {
+      {items?.slice(0, 8).map((m, i) => {
         const angle = (i / 8) * Math.PI * 2;
         const r = 2 + (i % 3) * 0.5;
         return (

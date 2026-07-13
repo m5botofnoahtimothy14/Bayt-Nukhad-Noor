@@ -165,7 +165,7 @@ export function GardenScene({ phase, season = "summer", onAdd, onView }: Props) 
       </mesh>
 
       {/* Memory flowers */}
-      {items?.slice(0, 6).map((_m, i) => {
+      {items?.slice(0, 6).map((m, i) => {
         const x = -2 + (i % 3) * 2;
         const z = 2 + Math.floor(i / 3);
         return (
