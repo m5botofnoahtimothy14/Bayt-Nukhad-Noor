@@ -166,7 +166,7 @@ export function ForestScene({ season = "summer", onAdd, onView }: Props) {
       ))}
 
       {/* Memory glows */}
-      {items?.slice(0, 6).map((_m, i) => {
+      {items?.slice(0, 6).map((m, i) => {
         const angle = (i / 6) * Math.PI * 2;
         const r = 1.5 + (i % 2);
         return (

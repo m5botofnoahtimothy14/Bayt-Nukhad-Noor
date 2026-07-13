@@ -7,6 +7,7 @@ export type WeatherState = {
   current: Weather;
   intensity: number; // 0-1
   windSpeed: number; // 0-1
+  setWeather: (w: Weather) => void;
 };
 
 const WEATHER_CYCLE_MS = 15 * 60 * 1000; // 15 minutes per change
@@ -49,7 +50,7 @@ export function useWeather(): WeatherState {
   }, []);
 
   // Attach setter for programmatic use
-  return { ...state, setWeather } as WeatherState & { setWeather: (w: Weather) => void };
+  return { ...state, setWeather };
 }
 
 export const WEATHER_OVERLAYS: Record<Weather, { opacity: number; label: string }> = {

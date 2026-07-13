@@ -6,6 +6,8 @@ import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
 import { Cat } from "@/components/world/Cat";
 import { SceneCanvas } from "@/components/world/SceneCanvas";
+import { LoadingScreen } from "@/components/world/LoadingScreen";
+import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
 
 import { AddMemoryDialog, ViewMemoryDialog, type Memory } from "@/components/world/memories";
 import { LivingRoomScene } from "@/components/scenes/LivingRoomScene";
@@ -34,7 +36,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/world")({
-  head: () => ({ meta: [{ title: "Bayt Nukhad Noor" }] }),
+  head: () => ({ meta: [{ title: "The Enchanted Nest · Bayt Nukhad Noor" }] }),
   component: World,
 });
 
@@ -99,9 +101,13 @@ function World() {
 
   return (
     <div className="scene">
-      <div key={sceneKey}>
+      <LoadingScreen />
+
+      <div key={sceneKey} className="transition-opacity duration-500 ease-in-out">
         <SceneCanvas phase={phase} weather={weather.current}>
-          <Cat location={loc} phase={phase} season={season} weather={weather.current} />
+          <ModelErrorBoundary url="/gltf/cat/scene.gltf">
+            <Cat location={loc} phase={phase} season={season} weather={weather.current} />
+          </ModelErrorBoundary>
 
           {loc === "house" && <LivingRoomScene phase={phase} onOpen={onOpen} onView={setViewing} />}
           {loc === "kitchen" && <KitchenScene phase={phase} onOpen={onOpen} onView={setViewing} />}

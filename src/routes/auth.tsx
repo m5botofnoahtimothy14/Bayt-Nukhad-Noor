@@ -8,8 +8,10 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const VALID_USER = "Khadija Noah";
-const VALID_PASS = "ipromisetobeyourman@noah";
+const VALID_USER = import.meta.env.VITE_AUTH_USER as string;
+const VALID_PASS = import.meta.env.VITE_AUTH_PASS as string;
+const AUTH_EMAIL = import.meta.env.VITE_AUTH_EMAIL as string;
+const AUTH_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD as string;
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -32,19 +34,19 @@ function AuthPage() {
     if (username === VALID_USER && password === VALID_PASS) {
       try {
         const { error } = await supabase.auth.signInWithPassword({
-          email: "khadija@ouruniverse.love",
-          password: "ipromisetobeyourman@noah",
+          email: AUTH_EMAIL,
+          password: AUTH_PASSWORD,
         });
         if (error) {
           const { error: signUpError } = await supabase.auth.signUp({
-            email: "khadija@ouruniverse.love",
-            password: "ipromisetobeyourman@noah",
-            options: { data: { display_name: "Khadija Noah" } },
+            email: AUTH_EMAIL,
+            password: AUTH_PASSWORD,
+            options: { data: { display_name: username } },
           });
           if (signUpError) throw signUpError;
           await supabase.auth.signInWithPassword({
-            email: "khadija@ouruniverse.love",
-            password: "ipromisetobeyourman@noah",
+            email: AUTH_EMAIL,
+            password: AUTH_PASSWORD,
           });
         }
         navigate({ to: "/world", replace: true });

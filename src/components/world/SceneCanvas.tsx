@@ -4,6 +4,7 @@ import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { LightingController } from "./LightingController";
 import { RainSystem } from "./RainSystem";
+import { SceneErrorBoundary } from "@/components/models/ModelErrorBoundary";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import type { Weather } from "@/hooks/useWeather";
 
@@ -13,11 +14,11 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const PHASE_PRESET: Record<TimePhase, string> = {
-  dawn: "dawn",
-  day: "sunset",
-  dusk: "sunset",
-  night: "night",
+const PHASE_PRESET = {
+  dawn: "dawn" as const,
+  day: "sunset" as const,
+  dusk: "sunset" as const,
+  night: "night" as const,
 };
 
 const CAM_BASE = new THREE.Vector3(0, 2.2, 5);
@@ -65,7 +66,9 @@ export function SceneCanvas({ phase, weather, children }: Props) {
           <LightingController phase={phase} weather={weather} />
           <RainSystem weather={weather} intensityBucket={phase === "night" ? "night" : "day"} />
 
-          {children}
+          <SceneErrorBoundary sceneName={envKey}>
+            {children}
+          </SceneErrorBoundary>
 
           <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 8, 22]} />
         </Suspense>

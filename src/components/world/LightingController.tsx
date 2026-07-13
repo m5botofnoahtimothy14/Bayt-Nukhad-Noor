@@ -74,10 +74,8 @@ export function LightingController({ phase, weather }: Props) {
         <pointLight intensity={0.35} color={0x9bb3ff} position={[-2, 2.0, 2]} />
       )}
 
-      {/* Simple occlusion helper */}
-      <mesh>
-        <ambientLight intensity={0} />
-      </mesh>
+      {/* Simple fill accent */}
+      <pointLight intensity={0.05} color={0xffffff} position={[0, -1, 0]} />
     </>
   );
 }

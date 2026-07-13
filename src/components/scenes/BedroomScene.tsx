@@ -3,6 +3,8 @@ import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import { Html } from "@react-three/drei";
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
 
 type Props = {
   phase: TimePhase;
@@ -82,14 +84,7 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
       {/* Moon light through window (night) */}
       {isNight && (
         <>
-          <spotLight
-            position={[4, 4, 2]}
-            target-position={[0, 0.3, -2]}
-            angle={0.4}
-            penumbra={0.9}
-            intensity={0.3}
-            color={0x8899cc}
-          />
+          <MoonSpotlight />
           {Array.from({ length: 15 }).map((_v, i) => (
             <mesh key={i} position={[-4 + (i % 5) * 1, 3 + Math.floor(i / 5) * 0.5, -4]}>
               <sphereGeometry args={[0.02, 8, 8]} />
@@ -141,5 +136,30 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
         </group>
       ))}
     </group>
+  );
+}
+
+function MoonSpotlight() {
+  const lightRef = useRef<THREE.SpotLight>(null);
+  const targetObj = useRef(new THREE.Object3D());
+
+  useEffect(() => {
+    if (lightRef.current) {
+      lightRef.current.target = targetObj.current;
+    }
+  }, []);
+
+  return (
+    <>
+      <spotLight
+        ref={lightRef}
+        position={[4, 4, 2]}
+        angle={0.4}
+        penumbra={0.9}
+        intensity={0.3}
+        color={0x8899cc}
+      />
+      <primitive object={targetObj.current} position={[0, 0.3, -2]} />
+    </>
   );
 }

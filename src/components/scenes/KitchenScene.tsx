@@ -1,6 +1,7 @@
 import { GltfModel } from "@/components/models/GltfModel";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
+import { useVinylAudio } from "@/hooks/useVinylAudio";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
 import { Html } from "@react-three/drei";
 
@@ -28,16 +29,19 @@ export function KitchenScene({ phase, onOpen, onView }: Props) {
     playing: false,
     startedAt: new Date().toISOString(),
   });
+  const { playing: audioPlaying, toggle: toggleAudio } = useVinylAudio();
 
   const isNight = phase === "night" || phase === "dusk";
 
   const cycleTrack = () => {
+    const nextIdx = (vinyl.trackIdx + 1) % TRACKS.length;
     setVinyl((prev) => ({
       ...prev,
-      trackIdx: (prev.trackIdx + 1) % TRACKS.length,
+      trackIdx: nextIdx,
       playing: true,
       startedAt: new Date().toISOString(),
     }));
+    toggleAudio(nextIdx);
   };
 
   return (

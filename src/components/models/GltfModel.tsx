@@ -1,6 +1,8 @@
 import { Suspense, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import type { ThreeEvent } from "@react-three/fiber";
+import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
 type Props = {
   url: string;
@@ -9,18 +11,18 @@ type Props = {
   rotation?: [number, number, number];
   castShadow?: boolean;
   receiveShadow?: boolean;
-  onClick?: (e: THREE.Event) => void;
+  onClick?: (e: ThreeEvent<MouseEvent>) => void;
 };
 
-export function GltfModel({
+function ModelInner({
   url,
-  position = [0, 0, 0],
-  scale = 1,
-  rotation = [0, 0, 0],
-  castShadow = true,
-  receiveShadow = true,
-  onClick,
-}: Props) {
+  castShadow,
+  receiveShadow,
+}: {
+  url: string;
+  castShadow: boolean;
+  receiveShadow: boolean;
+}) {
   const { scene } = useGLTF(url);
   const cloned = useMemo(() => {
     const s = scene.clone(true);
@@ -33,9 +35,25 @@ export function GltfModel({
     return s;
   }, [scene, castShadow, receiveShadow]);
 
+  return <primitive object={cloned} />;
+}
+
+export function GltfModel({
+  url,
+  position = [0, 0, 0],
+  scale = 1,
+  rotation = [0, 0, 0],
+  castShadow = true,
+  receiveShadow = true,
+  onClick,
+}: Props) {
   return (
     <group position={position} scale={scale} rotation={rotation} onClick={onClick}>
-      <primitive object={cloned} />
+      <ModelErrorBoundary url={url}>
+        <Suspense fallback={null}>
+          <ModelInner url={url} castShadow={castShadow} receiveShadow={receiveShadow} />
+        </Suspense>
+      </ModelErrorBoundary>
     </group>
   );
 }

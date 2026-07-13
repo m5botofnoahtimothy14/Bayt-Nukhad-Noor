@@ -64,5 +64,5 @@ export function useSharedState<T>(key: string, initial: T) {
     [key, value],
   );
 
-  return { value, setValue: update, ready } as const;
+  return { value, setValue: update, ready } as { value: T; setValue: (next: T | ((prev: T) => T)) => Promise<void>; ready: boolean };
 }

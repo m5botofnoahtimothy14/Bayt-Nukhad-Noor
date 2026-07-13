@@ -174,7 +174,7 @@ export function LakeScene({ phase, season = "summer", onAdd, onView }: Props) {
       </mesh>
 
       {/* Paper boat memories */}
-      {items?.slice(0, 5).map((_m, i) => (
+      {items?.slice(0, 5).map((m, i) => (
         <group key={m.id} position={[-1.5 + i * 0.8, -0.02, -1.5 - i * 0.3]}>
           {/* Simple boat shape */}
           <mesh onClick={() => onView(m)} rotation={[-Math.PI / 2, 0, i * 0.3]}>

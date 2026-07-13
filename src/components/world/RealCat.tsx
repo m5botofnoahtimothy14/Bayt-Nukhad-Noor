@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -302,20 +302,34 @@ export function RealCat({ location, phase, season, weather }: Props) {
 }
 
 function HtmlTag({ text, facing, hidden }: { text: string; facing: 1 | -1; hidden: boolean }) {
-  // Using Drei's Html would be ideal, but we keep it minimal by using a DOM overlay via CSS transform.
-  // For now, we render nothing if Html isn't available.
   return (
-    <mesh>
-      {/* placeholder; if you use <Html>, wire this up later */}
-    </mesh>
+    <Html
+      position={[0, 1.0, 0]}
+      center
+      distanceFactor={5}
+      style={{ pointerEvents: "none", transform: `scaleX(${facing})` }}
+    >
+      <div
+        className={`whitespace-nowrap rounded-full border border-white/10 bg-black/50 px-2.5 py-0.5 text-[10px] text-white/70 backdrop-blur-sm transition-opacity duration-300 serif ${hidden ? "opacity-0" : "opacity-100"}`}
+      >
+        {text}
+      </div>
+    </Html>
   );
 }
 
 function HtmlBubble({ facing, text }: { facing: 1 | -1; text: string }) {
   return (
-    <mesh>
-      {/* placeholder */}
-    </mesh>
+    <Html
+      position={[0, 1.4, 0]}
+      center
+      distanceFactor={5}
+      style={{ pointerEvents: "none", transform: `scaleX(${facing})` }}
+    >
+      <div className="animate-[fade-up_0.3s_ease-out_both] whitespace-nowrap rounded-2xl border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] text-white/80 shadow-lg backdrop-blur-md serif italic">
+        {text}
+      </div>
+    </Html>
   );
 }
 
@@ -333,9 +347,32 @@ function HtmlLabel({
   onCancel: () => void;
 }) {
   return (
-    <mesh>
-      {/* placeholder */}
-    </mesh>
+    <Html
+      position={[0, 1.2, 0]}
+      center
+      distanceFactor={5}
+      style={{ pointerEvents: "auto", transform: `scaleX(${facing})` }}
+    >
+      <div className="flex items-center gap-1 rounded-xl border border-white/15 bg-black/60 px-2 py-1 shadow-lg backdrop-blur-md">
+        <input
+          value={nameInput}
+          onChange={(e) => setNameInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSave();
+            if (e.key === "Escape") onCancel();
+          }}
+          className="w-24 bg-transparent text-[11px] text-white/90 outline-none placeholder:text-white/30 serif"
+          placeholder="name..."
+          autoFocus
+        />
+        <button
+          onClick={onSave}
+          className="rounded-full bg-primary/80 px-2 py-0.5 text-[9px] text-primary-foreground transition-colors hover:bg-primary"
+        >
+          ✓
+        </button>
+      </div>
+    </Html>
   );
 }
 
