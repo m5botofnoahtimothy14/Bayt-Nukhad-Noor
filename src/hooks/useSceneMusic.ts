@@ -1,5 +1,10 @@
 import { useEffect, useRef, useCallback } from "react";
-import { playSong, stopAll, setMasterVolume } from "@/lib/audioEngine";
+import {
+  playSong,
+  stopAll,
+  setMasterVolume,
+  getActiveAudio,
+} from "@/lib/audioEngine";
 import {
   SONGS,
   SCENE_MUSIC,
@@ -32,9 +37,9 @@ export function useSceneMusic(location: string) {
       // Schedule next song to play after current ends (with overlap for crossfade)
       if (intervalRef.current) clearTimeout(intervalRef.current);
 
-      // Get audio duration when it loads, then schedule next
+      // Get audio duration from the engine, then schedule next
       const checkDuration = () => {
-        const audio = document.querySelector("audio[src]") as HTMLAudioElement | null;
+        const audio = getActiveAudio();
         if (!audio || !audio.duration || isNaN(audio.duration)) {
           intervalRef.current = setTimeout(checkDuration, 1000);
           return;
@@ -106,8 +111,10 @@ export function useSceneMusic(location: string) {
 export function useSceneMusicControl() {
   const pause = useCallback(() => stopAll(1000), []);
   const resume = useCallback(() => {
-    const audio = document.querySelector("audio") as HTMLAudioElement | null;
-    audio?.play().catch(() => {});
+    const audio = getActiveAudio();
+    if (audio) {
+      audio.play().catch(() => {});
+    }
   }, []);
   const setVolume = useCallback((v: number) => setMasterVolume(v, 500), []);
 

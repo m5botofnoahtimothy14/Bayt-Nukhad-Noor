@@ -48,11 +48,13 @@ export const OPENING_MUSIC: SceneMusicProfile = {
 export const PROPOSAL_MUSIC: {
   ambience: SongKey;
   piano: SongKey;
+  strings: SongKey;
   climax: SongKey;
   volume: number;
 } = {
   ambience: "myLoveMineAllMine",
   piano: "clairDeLune",
+  strings: "canonInD",
   climax: "kesariya",
   volume: 0.3,
 };
@@ -129,7 +131,7 @@ export const SCENE_MUSIC: Record<string, SceneMusicProfile> = {
     volume: 0.22,
     entryDelayMs: 1500,
   },
-  "memory-of-memories": {
+  memories: {
     songs: ["comptine", "riverFlowsInYou"],
     crossfadeMs: 6000,
     volume: 0.2,

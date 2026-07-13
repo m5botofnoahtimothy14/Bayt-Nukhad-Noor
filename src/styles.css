@@ -1089,10 +1089,6 @@
   0% { opacity: 0; transform: translateY(16px); filter: blur(6px); }
   100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-@keyframes doors-appear {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); filter: blur(10px); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
-}
 @keyframes doors-fade {
   0% { opacity: 0; transform: scale(0.9); filter: blur(10px); }
   100% { opacity: 1; transform: scale(1); filter: blur(0); }

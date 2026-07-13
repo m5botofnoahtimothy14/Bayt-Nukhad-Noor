@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import {
   playSong,
   stopAll,
-  setMasterVolume,
+  setMasterVolume as setEngineVolume,
   getCurrentAudio,
 } from "@/lib/audioEngine";
 import { SONGS, PROPOSAL_MUSIC } from "@/lib/musicCatalog";
@@ -29,8 +29,8 @@ export function useProposalAudio() {
   }, []);
 
   const playStrings = useCallback(() => {
-    // Strings / orchestral layer
-    playSong(SONGS[PROPOSAL_MUSIC.piano], {
+    // Strings / orchestral layer — Canon in D (cello & piano)
+    playSong(SONGS[PROPOSAL_MUSIC.strings], {
       fadeInMs: 5000,
       volume: PROPOSAL_MUSIC.volume * 1.1,
       loop: true,
@@ -58,8 +58,8 @@ export function useProposalAudio() {
     stopAll(duration);
   }, []);
 
-  const setMasterVolume = useCallback((v: number) => {
-    setMasterVolume(v);
+  const setVolume = useCallback((v: number) => {
+    setEngineVolume(v);
   }, []);
 
   return {
@@ -70,6 +70,6 @@ export function useProposalAudio() {
     playCandleCrackle,
     playClimax,
     fadeAll,
-    setMasterVolume,
+    setMasterVolume: setVolume,
   };
 }

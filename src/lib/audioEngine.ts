@@ -183,6 +183,17 @@ export function getCurrentAudio(): HTMLAudioElement | null {
   return el.src ? el : null;
 }
 
+/** Get the currently playing audio element (for duration queries etc.) */
+export function getActiveAudio(): HTMLAudioElement | null {
+  if (!elemA && !elemB) return null;
+  const el = active === "a" ? elemA : elemB;
+  if (el && !el.paused) return el;
+  // If active isn't playing, check the other
+  const other = active === "a" ? elemB : elemA;
+  if (other && !other.paused) return other;
+  return null;
+}
+
 /** Destroy everything */
 export function destroy() {
   clearFadeTimers();

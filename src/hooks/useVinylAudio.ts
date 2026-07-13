@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { VINYL_TRACKS, SONGS } from "@/lib/musicCatalog";
-import { playSong, stopAll, isPlaying as engineIsPlaying } from "@/lib/audioEngine";
+import { playSong, stopAll } from "@/lib/audioEngine";
 
 export function useVinylAudio() {
   const [playing, setPlaying] = useState(false);

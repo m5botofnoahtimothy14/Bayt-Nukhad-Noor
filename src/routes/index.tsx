@@ -51,8 +51,12 @@ function Portal() {
   }, [phase]);
 
   // ─── Opening music — sacred, slow fade-in ───
-  const introActive = phase.startsWith("intro") || phase === "waiting";
-  useOpeningMusic(introActive && checked);
+  // Music plays during all intro phases AND the waiting phase (doors visible)
+  const musicActive = phase.startsWith("intro") || phase === "waiting";
+  useOpeningMusic(musicActive && checked);
+
+  // Overlay only shows during intro phases (not "waiting" — doors need clicks)
+  const introOverlayActive = phase.startsWith("intro");
 
   const skip = useCallback(() => {
     if (phase.startsWith("intro")) setPhase("waiting");
@@ -91,7 +95,7 @@ function Portal() {
       />
 
       {/* ===== INTRO SEQUENCE ===== */}
-      {introActive && checked && (
+      {introOverlayActive && checked && (
         <div
           className="absolute inset-0 z-30 flex flex-col items-center justify-center px-8 text-center cursor-pointer"
           onClick={skip}
