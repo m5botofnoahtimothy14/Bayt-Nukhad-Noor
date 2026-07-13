@@ -13,12 +13,12 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const PHASE_PRESET: Record<TimePhase, string> = {
+const PHASE_PRESET = {
   dawn: "dawn",
   day: "sunset",
   dusk: "sunset",
   night: "night",
-};
+} as const satisfies Record<TimePhase, "dawn" | "sunset" | "night">;
 
 const CAM_BASE = new THREE.Vector3(0, 2.2, 5);
 const CAM_LOOK = new THREE.Vector3(0, 1.0, 0);
