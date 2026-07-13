@@ -43,12 +43,9 @@ function CameraRig() {
 }
 
 export function SceneCanvas({ phase, weather, children }: Props) {
-  const envKey = useMemo(() => `${phase}-${weather}`, [phase, weather]);
-
   return (
     <div className="absolute inset-0">
       <Canvas
-        key={envKey}
         shadows
         dpr={[1, 2]}
         gl={{

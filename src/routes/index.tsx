@@ -6,6 +6,10 @@ const PortalCanvas = lazy(() =>
   import("@/components/portal/PortalCanvas").then((m) => ({ default: m.PortalCanvas })),
 );
 
+const ProposalExperience = lazy(() =>
+  import("@/components/proposal/ProposalExperience").then((m) => ({ default: m.ProposalExperience })),
+);
+
 export const Route = createFileRoute("/")({
   ssr: false,
   component: Portal,
@@ -338,26 +342,9 @@ function Portal() {
       )}
 
       {phase === "entered" && (
-        <div
-          className="absolute inset-0 z-40 flex items-center justify-center"
-          style={{ animation: "fade-in 1s ease-out both" }}
-        >
-          <button
-            onClick={() => navigate({ to: "/auth" })}
-            className="rounded-full px-10 py-3.5 text-sm serif italic tracking-wider transition-all hover:scale-105"
-            style={{
-              color: "oklch(0.97 0.02 90)",
-              background:
-                "linear-gradient(135deg, oklch(0.52 0.16 150 / 35%), oklch(0.42 0.17 25 / 30%))",
-              border: "1px solid oklch(0.62 0.15 150 / 45%)",
-              boxShadow:
-                "0 0 60px oklch(0.52 0.16 150 / 30%), 0 0 100px oklch(0.42 0.17 25 / 20%)",
-              animation: "fade-up 1s ease-out 0.3s both",
-            }}
-          >
-            Enter Bayt Nūkhad Noor →
-          </button>
-        </div>
+        <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
+          <ProposalExperience onEnterHouse={() => navigate({ to: "/auth" })} />
+        </Suspense>
       )}
     </div>
   );

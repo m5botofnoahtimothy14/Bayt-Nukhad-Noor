@@ -1,26 +1,33 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { useSeason } from "@/hooks/useSeason";
 import { useWeather } from "@/hooks/useWeather";
+import { usePreloadModels } from "@/hooks/usePreloadModels";
 import { Cat } from "@/components/world/Cat";
 import { SceneCanvas } from "@/components/world/SceneCanvas";
 import { LoadingScreen } from "@/components/world/LoadingScreen";
 import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
+import { WishOverlay } from "@/components/world/WishOverlay";
+import { toast } from "sonner";
+
+import {
+  LazyLivingRoomScene,
+  LazyKitchenScene,
+  LazyDiningScene,
+  LazyBedroomScene,
+  LazyGardenScene,
+  LazyBalconyScene,
+  LazyObservatoryScene,
+  LazyLakeScene,
+  LazyForestScene,
+  LazyMeadowScene,
+  LazyMemoryOfMemoriesScene,
+} from "@/components/scenes/lazyScenes";
 
 import { AddMemoryDialog, ViewMemoryDialog, type Memory } from "@/components/world/memories";
-import { LivingRoomScene } from "@/components/scenes/LivingRoomScene";
-import { GardenScene } from "@/components/scenes/GardenScene";
-import { ObservatoryScene } from "@/components/scenes/ObservatoryScene";
-import { LakeScene } from "@/components/scenes/LakeScene";
-import { ForestScene } from "@/components/scenes/ForestScene";
-import { MeadowScene } from "@/components/scenes/MeadowScene";
-import { BalconyScene } from "@/components/scenes/BalconyScene";
-import { KitchenScene } from "@/components/scenes/KitchenScene";
-import { DiningScene } from "@/components/scenes/DiningScene";
-import { BedroomScene } from "@/components/scenes/BedroomScene";
-import { WishOverlay } from "@/components/world/WishOverlay";
 import {
   Home,
   Flower2,
@@ -33,6 +40,10 @@ import {
   UtensilsCrossed,
   Utensils,
   BedDouble,
+  BookOpen,
+  Undo2,
+  Redo2,
+  Camera,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/world")({
@@ -50,7 +61,8 @@ type Loc =
   | "lake"
   | "forest"
   | "meadow"
-  | "balcony";
+  | "balcony"
+  | "memories";
 
 const LOCATIONS: {
   id: Loc;
@@ -68,8 +80,179 @@ const LOCATIONS: {
   { id: "lake", name: "Moon Lake", icon: Waves, hint: "paper boats" },
   { id: "forest", name: "Whispering Forest", icon: Trees, hint: "fireflies" },
   { id: "meadow", name: "Rain Meadow", icon: CloudRain, hint: "soft rain" },
+  { id: "memories", name: "Room of Memories", icon: Camera, hint: "our story" },
 ];
 
+/* ─── Undo/Redo for memory creation ─── */
+type UndoEntry = { id: string; location: string };
+
+/* ─── #3: "Last seen" indicator ─── */
+function useLastSeen(location: string) {
+  const [partner, setPartner] = useState<{ location: string; name: string } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const ch = supabase
+      .channel("last-seen")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shared_state", filter: "key=eq.user.lastSeen" },
+        (payload) => {
+          if (!alive) return;
+          const val = (payload.new as { value?: { location: string; name: string } })?.value;
+          if (val) setPartner(val);
+        },
+      )
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, []);
+
+  return partner;
+}
+
+/* ─── #6: Memory notifications ─── */
+function useMemoryNotifications(currentLocation: string) {
+  useEffect(() => {
+    let alive = true;
+    const ch = supabase
+      .channel("mem-notify")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "memories" },
+        (payload) => {
+          if (!alive) return;
+          const m = payload.new as Memory;
+          if (m.location !== currentLocation) {
+            toast.info(`New memory in ${m.location}: "${m.title}"`, { duration: 5000 });
+          }
+        },
+      )
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, [currentLocation]);
+}
+
+/* ─── Journal component (#2) ─── */
+type JournalEntry = { id: string; body: string; created_by: string; created_at: string };
+
+function useJournal() {
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    supabase
+      .from("journal_entries" as never)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (alive && !error) setEntries((data as JournalEntry[]) ?? []);
+        if (alive) setLoading(false);
+      });
+    const ch = supabase
+      .channel("journal-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "journal_entries" },
+        (payload) => {
+          if (alive) setEntries((prev) => [payload.new as JournalEntry, ...prev]);
+        },
+      )
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, []);
+
+  return { entries, loading };
+}
+
+function JournalPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { entries, loading } = useJournal();
+  const [body, setBody] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  if (!open) return null;
+
+  const submit = async () => {
+    if (!body.trim()) return;
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSaving(false); return; }
+    const { error } = await (supabase.from("journal_entries" as never) as never).insert({
+      created_by: user.id,
+      body: body.trim(),
+    } as never);
+    setSaving(false);
+    if (error) return toast.error("Could not save");
+    setBody("");
+    toast.success("Written to the journal");
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+      style={{ animation: "backdrop-enter 0.3s ease-out both" }}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[oklch(0.18_0.04_350)]/95 p-6 shadow-2xl backdrop-blur-xl max-h-[80vh] flex flex-col"
+        style={{ boxShadow: "0 25px 60px oklch(0 0 0 / 40%), 0 0 40px oklch(0.72 0.14 15 / 8%)" }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="serif text-2xl italic text-foreground">Our Journal</h3>
+            <p className="text-[10px] text-muted-foreground serif italic">shared between us</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-white/10 transition-all">
+            ✕
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 min-h-0">
+          {loading && <p className="text-xs text-muted-foreground serif italic">loading...</p>}
+          {entries.map((e) => (
+            <div key={e.id} className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+              <p className="serif italic text-sm text-foreground/90 whitespace-pre-wrap">{e.body}</p>
+              <p className="mt-1 text-[9px] text-muted-foreground">{new Date(e.created_at).toLocaleDateString()}</p>
+            </div>
+          ))}
+          {!loading && entries.length === 0 && (
+            <p className="text-xs text-muted-foreground serif italic text-center py-8">Start writing together...</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Write something..."
+            rows={2}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm serif italic outline-none resize-none placeholder:text-muted-foreground/40 focus:border-primary/50"
+          />
+          <button
+            onClick={submit}
+            disabled={saving || !body.trim()}
+            className="self-end rounded-full px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, oklch(0.72 0.14 15), oklch(0.60 0.14 350))" }}
+          >
+            {saving ? "..." : "Write"}
+          </button>
+        </div>
+        <p className="text-[9px] text-muted-foreground/50 mt-2 text-center">⌘/Ctrl+Enter to save</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Scene loader fallback ─── */
+function SceneFallback() {
+  return null;
+}
+
+/* ─── Main World component ─── */
 function World() {
   const [loc, setLoc] = useState<Loc>("house");
   const [sceneKey, setSceneKey] = useState(0);
@@ -78,11 +261,63 @@ function World() {
   const weather = useWeather();
   const navigate = useNavigate();
 
+  // Preload 3D models on mount
+  usePreloadModels();
+
+  // #6: Notify when partner adds a memory elsewhere
+  useMemoryNotifications(loc);
+
+  // #3: Track last seen location
+  const partnerSeen = useLastSeen(loc);
+  useEffect(() => {
+    const update = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const name = user.user_metadata?.display_name ?? user.email?.split("@")[0] ?? "someone";
+      await supabase
+        .from("shared_state")
+        .upsert(
+          { key: "user.lastSeen", value: { location: loc, name }, updated_by: user.id, updated_at: new Date().toISOString() },
+          { onConflict: "key" },
+        );
+    };
+    update();
+  }, [loc]);
+
   const [addOpen, setAddOpen] = useState<{
     kind: "memory" | "letter" | "photo" | "song";
     pos?: { x: number; y: number } | null;
   } | null>(null);
   const [viewing, setViewing] = useState<Memory | null>(null);
+  const [journalOpen, setJournalOpen] = useState(false);
+
+  // #4: Undo/redo for memory creation
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  const [redoStack, setRedoStack] = useState<UndoEntry[]>([]);
+
+  const pushUndo = useCallback((entry: UndoEntry) => {
+    setUndoStack((prev) => [...prev, entry]);
+    setRedoStack([]);
+  }, []);
+
+  const undo = useCallback(async () => {
+    setUndoStack((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setRedoStack((r) => [...r, last]);
+      supabase.from("memories").delete().eq("id", last.id);
+      return prev.slice(0, -1);
+    });
+  }, []);
+
+  const redo = useCallback(async () => {
+    setRedoStack((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setUndoStack((u) => [...u, last]);
+      return prev.slice(0, -1);
+    });
+  }, []);
 
   const switchScene = (newLoc: Loc) => {
     if (newLoc === loc) return;
@@ -99,6 +334,22 @@ function World() {
   const onOpen = (k: "memory" | "letter" | "photo" | "song") => setAddOpen({ kind: k });
   const onAdd = (p: { x: number; y: number }) => setAddOpen({ kind: "memory", pos: p });
 
+  const sceneContent = useMemo(() => {
+    switch (loc) {
+      case "house": return <LazyLivingRoomScene phase={phase} onOpen={onOpen} onView={setViewing} />;
+      case "kitchen": return <LazyKitchenScene phase={phase} onOpen={onOpen} onView={setViewing} />;
+      case "dining": return <LazyDiningScene phase={phase} onOpen={onOpen} onView={setViewing} />;
+      case "bedroom": return <LazyBedroomScene phase={phase} onOpen={onOpen} onView={setViewing} />;
+      case "garden": return <LazyGardenScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />;
+      case "balcony": return <LazyBalconyScene season={season} onAdd={onAdd} onView={setViewing} />;
+      case "observatory": return <LazyObservatoryScene season={season} onAdd={onAdd} onView={setViewing} />;
+      case "lake": return <LazyLakeScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />;
+      case "forest": return <LazyForestScene season={season} onAdd={onAdd} onView={setViewing} />;
+      case "meadow": return <LazyMeadowScene season={season} onAdd={onAdd} onView={setViewing} />;
+      case "memories": return <LazyMemoryOfMemoriesScene phase={phase} season={season} weather={weather.current} />;
+    }
+  }, [loc, phase, season, weather.current]);
+
   return (
     <div className="scene">
       <LoadingScreen />
@@ -109,27 +360,21 @@ function World() {
             <Cat location={loc} phase={phase} season={season} weather={weather.current} />
           </ModelErrorBoundary>
 
-          {loc === "house" && <LivingRoomScene phase={phase} onOpen={onOpen} onView={setViewing} />}
-          {loc === "kitchen" && <KitchenScene phase={phase} onOpen={onOpen} onView={setViewing} />}
-          {loc === "dining" && <DiningScene phase={phase} onOpen={onOpen} onView={setViewing} />}
-          {loc === "bedroom" && <BedroomScene phase={phase} onOpen={onOpen} onView={setViewing} />}
-          {loc === "garden" && (
-            <GardenScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />
-          )}
-          {loc === "balcony" && <BalconyScene season={season} onAdd={onAdd} onView={setViewing} />}
-          {loc === "observatory" && (
-            <ObservatoryScene season={season} onAdd={onAdd} onView={setViewing} />
-          )}
-          {loc === "lake" && (
-            <LakeScene phase={phase} season={season} onAdd={onAdd} onView={setViewing} />
-          )}
-          {loc === "forest" && <ForestScene season={season} onAdd={onAdd} onView={setViewing} />}
-          {loc === "meadow" && <MeadowScene season={season} onAdd={onAdd} onView={setViewing} />}
+          <Suspense fallback={<SceneFallback />}>
+            {sceneContent}
+          </Suspense>
         </SceneCanvas>
       </div>
 
       {/* Wish-on-a-star overlay (balcony + observatory) */}
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}
+
+      {/* #3: Partner "last seen" indicator */}
+      {partnerSeen && partnerSeen.location !== loc && (
+        <div className="pointer-events-none absolute left-1/2 top-28 z-40 -translate-x-1/2 rounded-full border border-white/5 bg-black/20 px-3 py-1 text-[10px] text-muted-foreground/60 backdrop-blur-sm serif italic animate-[fade-up_0.4s_ease-out_both]">
+          {partnerSeen.name} is in the {LOCATIONS.find((l) => l.id === partnerSeen.location)?.name ?? partnerSeen.location}
+        </div>
+      )}
 
       {/* Weather overlay */}
       {weather.current !== "clear" && (
@@ -161,14 +406,46 @@ function World() {
         <p className="serif text-xs italic text-muted-foreground">{currentLoc.hint}</p>
       </div>
 
-      {/* Sign out */}
-      <button
-        onClick={signOut}
-        className="absolute right-4 top-4 z-40 rounded-full border border-white/10 bg-black/20 p-2.5 text-muted-foreground backdrop-blur-md transition-all duration-300 hover:text-foreground hover:bg-black/30 hover:scale-110"
-        aria-label="Sign out"
-      >
-        <LogOut size={16} />
-      </button>
+      {/* Top-right controls */}
+      <div className="absolute right-4 top-4 z-40 flex items-center gap-2">
+        {/* #4: Undo/redo */}
+        {undoStack.length > 0 && (
+          <button
+            onClick={undo}
+            className="rounded-full border border-white/10 bg-black/20 p-2.5 text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/30 hover:scale-110"
+            title="Undo last memory"
+          >
+            <Undo2 size={14} />
+          </button>
+        )}
+        {redoStack.length > 0 && (
+          <button
+            onClick={redo}
+            className="rounded-full border border-white/10 bg-black/20 p-2.5 text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/30 hover:scale-110"
+            title="Redo memory"
+          >
+            <Redo2 size={14} />
+          </button>
+        )}
+
+        {/* #2: Journal */}
+        <button
+          onClick={() => setJournalOpen(true)}
+          className="rounded-full border border-white/10 bg-black/20 p-2.5 text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/30 hover:scale-110"
+          title="Open journal"
+        >
+          <BookOpen size={16} />
+        </button>
+
+        {/* Sign out */}
+        <button
+          onClick={signOut}
+          className="rounded-full border border-white/10 bg-black/20 p-2.5 text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/30 hover:scale-110"
+          aria-label="Sign out"
+        >
+          <LogOut size={16} />
+        </button>
+      </div>
 
       {/* Navigation bar */}
       <nav
@@ -214,6 +491,7 @@ function World() {
         position={addOpen?.pos ?? null}
       />
       <ViewMemoryDialog memory={viewing} onClose={() => setViewing(null)} />
+      <JournalPanel open={journalOpen} onClose={() => setJournalOpen(false)} />
     </div>
   );
 }
