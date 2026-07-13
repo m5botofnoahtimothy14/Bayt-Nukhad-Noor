@@ -1,6 +1,6 @@
-import { Suspense, useMemo, useRef, useCallback } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, PerspectiveCamera } from "@react-three/drei";
+import { Environment, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { LightingController } from "./LightingController";
 import { RainSystem } from "./RainSystem";
