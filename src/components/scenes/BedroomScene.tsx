@@ -1,4 +1,5 @@
 import { GltfModel } from "@/components/models/GltfModel";
+import { RoomShell } from "@/components/world/RoomShell";
 import { useMemories, type Memory } from "@/components/world/memories";
 import { useSharedState } from "@/hooks/useSharedState";
 import type { TimePhase } from "@/hooks/useTimeOfDay";
@@ -32,8 +33,36 @@ export function BedroomScene({ phase, onOpen, onView }: Props) {
     <group>
       <ambientLight intensity={isNight ? (bothOff ? 0.03 : 0.08) : 0.2} />
 
-      {/* Full bedroom environment from .blend (decimated to 4MB) */}
-      <GltfModel url="/models/bedroom/scene.glb" position={[0, 0, 0]} scale={1} />
+      {/* Procedural room shell + bed */}
+      <RoomShell tint="#2a2038" floorTint="#3a2f45" width={8} depth={6} height={3} />
+      {/* Bed frame */}
+      <mesh position={[0, 0.35, -1.2]} castShadow receiveShadow>
+        <boxGeometry args={[3, 0.7, 2.2]} />
+        <meshStandardMaterial color="#4a3a5a" roughness={0.7} />
+      </mesh>
+      {/* Mattress / duvet */}
+      <mesh position={[0, 0.78, -1.2]} castShadow>
+        <boxGeometry args={[2.9, 0.2, 2.1]} />
+        <meshStandardMaterial color="#e8d8e0" roughness={0.6} />
+      </mesh>
+      {/* Pillows */}
+      <mesh position={[-0.7, 0.95, -1.9]} castShadow>
+        <boxGeometry args={[1, 0.15, 0.5]} />
+        <meshStandardMaterial color="#f5eef2" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.7, 0.95, -1.9]} castShadow>
+        <boxGeometry args={[1, 0.15, 0.5]} />
+        <meshStandardMaterial color="#f5eef2" roughness={0.5} />
+      </mesh>
+      {/* Nightstands */}
+      <mesh position={[-2.2, 0.4, -1.5]} castShadow>
+        <boxGeometry args={[0.7, 0.8, 0.7]} />
+        <meshStandardMaterial color="#3a2a20" roughness={0.8} />
+      </mesh>
+      <mesh position={[2.2, 0.4, -1.5]} castShadow>
+        <boxGeometry args={[0.7, 0.8, 0.7]} />
+        <meshStandardMaterial color="#3a2a20" roughness={0.8} />
+      </mesh>
 
       {/* Noah's lamp — left nightstand area */}
       <group position={[-2.2, 0.8, -1.5]}>

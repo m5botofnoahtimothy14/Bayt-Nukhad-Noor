@@ -28,8 +28,8 @@ function ModelInner({
     const s = scene.clone(true);
     s.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        child.castShadow = castShadow;
-        child.receiveShadow = receiveShadow;
+        child.castShadow = castShadow ?? true;
+        child.receiveShadow = receiveShadow ?? true;
       }
     });
     return s;

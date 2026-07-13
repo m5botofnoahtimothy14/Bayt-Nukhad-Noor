@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef, useCallback } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -19,7 +19,7 @@ const PHASE_PRESET = {
   day: "sunset" as const,
   dusk: "sunset" as const,
   night: "night" as const,
-};
+} as const satisfies Record<TimePhase, "dawn" | "sunset" | "night">;
 
 const CAM_BASE = new THREE.Vector3(0, 2.2, 5);
 const CAM_LOOK = new THREE.Vector3(0, 1.0, 0);
@@ -63,11 +63,11 @@ export function SceneCanvas({ phase, weather, children }: Props) {
           <LightingController phase={phase} weather={weather} />
           <RainSystem weather={weather} intensityBucket={phase === "night" ? "night" : "day"} />
 
-          <SceneErrorBoundary sceneName={envKey}>
+          <SceneErrorBoundary sceneName={phase}>
             {children}
           </SceneErrorBoundary>
 
-          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 8, 22]} />
+          <fog attach="fog" args={[new THREE.Color(0x1a0f1f), 12, 30]} />
         </Suspense>
       </Canvas>
     </div>
