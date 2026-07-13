@@ -6,6 +6,7 @@ type ParchmentOverlayProps = {
   phase: "opening" | "writing" | "final" | "closed";
   onWritingComplete: () => void;
   onFinalComplete: () => void;
+  onChoice: (accepted: boolean) => void;
 };
 
 let proposalText = "";
@@ -18,7 +19,6 @@ try {
   proposalText = "Your proposal text goes here.";
 }
 
-// Split into body and final question at the LAST "Khadija..." occurrence
 const lastIdx = proposalText.lastIndexOf("Khadija...");
 const bodyText = lastIdx >= 0 ? proposalText.slice(0, lastIdx) : proposalText;
 const questionText =
@@ -38,6 +38,7 @@ export function ParchmentOverlay({
   phase,
   onWritingComplete,
   onFinalComplete,
+  onChoice,
 }: ParchmentOverlayProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isClosed = phase === "closed";
@@ -53,7 +54,6 @@ export function ParchmentOverlay({
   onCompleteRef.current = onWritingComplete;
   onFinalRef.current = onFinalComplete;
 
-  // Fire completion callbacks once after text is visible
   useEffect(() => {
     if (isWriting) {
       const t = setTimeout(() => onCompleteRef.current?.(), 1200);
@@ -72,7 +72,7 @@ export function ParchmentOverlay({
     <AnimatePresence>
       {visible && !isClosed && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          className="fixed inset-0 z-50 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -83,7 +83,7 @@ export function ParchmentOverlay({
 
           {/* Letter / Parchment */}
           <motion.div
-            className="relative z-10 pointer-events-auto"
+            className="relative z-10"
             initial={{ scaleY: 0, opacity: 0 }}
             animate={{
               scaleY: isOpening ? 1 : isWriting || isFinal ? 1 : 0,
@@ -97,7 +97,7 @@ export function ParchmentOverlay({
               className="relative mx-auto overflow-y-auto"
               style={{
                 width: "min(600px, 90vw)",
-                maxHeight: "82vh",
+                maxHeight: "88vh",
                 padding: "clamp(2rem, 5vw, 3.5rem) clamp(2.5rem, 6vw, 4rem)",
                 background:
                   "linear-gradient(170deg, oklch(0.95 0.02 75), oklch(0.91 0.03 78) 40%, oklch(0.93 0.02 80) 70%, oklch(0.90 0.03 76))",
@@ -176,7 +176,7 @@ export function ParchmentOverlay({
                 </motion.div>
               )}
 
-              {/* ── Body — full text, justified, shown immediately ── */}
+              {/* ── Body ── */}
               {(isWriting || isFinal) && (
                 <div
                   className="proposal-text"
@@ -203,7 +203,7 @@ export function ParchmentOverlay({
                 </div>
               )}
 
-              {/* ── Divider before final question ── */}
+              {/* ── Divider ── */}
               {isFinal && (
                 <div className="my-8 text-center">
                   <div
@@ -217,7 +217,7 @@ export function ParchmentOverlay({
                 </div>
               )}
 
-              {/* ── Final question — full text, justified ── */}
+              {/* ── Final question ── */}
               {isFinal && (
                 <div
                   className="proposal-text"
@@ -292,6 +292,65 @@ export function ParchmentOverlay({
                       &#10084;
                     </span>
                   </div>
+                </motion.div>
+              )}
+
+              {/* ── Choice buttons — embedded inside the scroll ── */}
+              {isFinal && (
+                <motion.div
+                  className="flex flex-col items-center gap-4 mt-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1.2, delay: 1.5 }}
+                >
+                  {/* Yes button */}
+                  <motion.button
+                    onClick={() => onChoice(true)}
+                    className="group relative rounded-full px-12 py-4 text-base proposal-heading tracking-wider cursor-pointer transition-all duration-500"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 2, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      color: "oklch(0.97 0.02 90)",
+                      background:
+                        "linear-gradient(135deg, oklch(0.52 0.16 150 / 40%), oklch(0.42 0.17 25 / 35%))",
+                      border: "1px solid oklch(0.62 0.15 150 / 50%)",
+                      boxShadow:
+                        "0 0 40px oklch(0.52 0.16 150 / 25%), 0 0 80px oklch(0.42 0.17 25 / 15%)",
+                    }}
+                    whileHover={{
+                      boxShadow:
+                        "0 0 60px oklch(0.52 0.16 150 / 40%), 0 0 120px oklch(0.42 0.17 25 / 25%)",
+                      scale: 1.03,
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="mr-2">&#10084;</span>
+                    Yes... Always.
+                  </motion.button>
+
+                  {/* No button */}
+                  <motion.button
+                    onClick={() => onChoice(false)}
+                    className="group rounded-full px-10 py-3 text-sm proposal-text tracking-wider cursor-pointer transition-all duration-500"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 2.5, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      color: "oklch(0.80 0.03 90 / 60%)",
+                      background: "transparent",
+                      border: "1px solid oklch(0.50 0.04 90 / 20%)",
+                    }}
+                    whileHover={{
+                      color: "oklch(0.85 0.04 90 / 80%)",
+                      borderColor: "oklch(0.55 0.05 90 / 35%)",
+                      scale: 1.02,
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="mr-2">&#129293;</span>
+                    I need a little more time.
+                  </motion.button>
                 </motion.div>
               )}
 

@@ -4,7 +4,6 @@ import { useProposalSequence } from "@/hooks/useProposalSequence";
 import { useProposalAudio } from "@/hooks/useProposalAudio";
 import { ProposalScene } from "./ProposalScene";
 import { ParchmentOverlay } from "./ParchmentOverlay";
-import { ProposalChoice } from "./ProposalChoice";
 
 type ProposalExperienceProps = {
   onEnterHouse: () => void;
@@ -133,20 +132,19 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
   // Determine parchment state
   const parchmentVisible = ["opening", "writing", "final", "closed"].includes(
     phase,
-  ) || phase === "scroll-opening" || phase === "proposal-text" || phase === "final-question";
+  ) || phase === "scroll-opening" || phase === "proposal-text" || phase === "final-question" || phase === "choice";
 
   const parchmentPhase: "opening" | "writing" | "final" | "closed" =
     phase === "scroll-opening"
       ? "opening"
       : phase === "proposal-text"
         ? "writing"
-        : phase === "final-question"
+        : phase === "final-question" || phase === "choice"
           ? "final"
-          : phase === "choice" || phase === "yes-path" || phase === "time-path" || phase === "welcome-text" || phase === "enter-house"
+          : phase === "yes-path" || phase === "time-path" || phase === "welcome-text" || phase === "enter-house"
             ? "closed"
             : "opening";
 
-  const choiceVisible = phase === "choice";
   const welcomeVisible = phase === "welcome-text" || phase === "enter-house";
   const timePathVisible = phase === "time-path";
   const welcomeText =
@@ -206,16 +204,14 @@ export function ProposalExperience({ onEnterHouse }: ProposalExperienceProps) {
         </motion.div>
       )}
 
-      {/* Parchment */}
+      {/* Parchment — stays open until she clicks choice */}
       <ParchmentOverlay
         visible={parchmentVisible}
         phase={parchmentPhase}
         onWritingComplete={handleProposalComplete}
         onFinalComplete={handleFinalQuestionComplete}
+        onChoice={handleChoice}
       />
-
-      {/* Choice buttons */}
-      <ProposalChoice visible={choiceVisible} onChoice={handleChoice} />
 
       {/* Time path note */}
       <TimePathNote visible={timePathVisible} />
