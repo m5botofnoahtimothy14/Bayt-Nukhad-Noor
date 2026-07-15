@@ -80,6 +80,36 @@ export type Database = {
         }
         Relationships: []
       }
+      memory_strips: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          image_url: string
+          memory_number: number | null
+          quote: string | null
+          taken_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          image_url: string
+          memory_number?: number | null
+          quote?: string | null
+          taken_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          image_url?: string
+          memory_number?: number | null
+          quote?: string | null
+          taken_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_hue: number | null
