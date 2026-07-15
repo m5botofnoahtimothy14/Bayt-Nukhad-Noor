@@ -288,7 +288,7 @@ export function TwinklingStars({ count = 100, radius = 20 }: { count?: number; r
     const attr = ref.current.geometry.attributes.position;
     // We animate via the material opacity since PointsMaterial doesn't support per-vertex alpha easily
     // Instead we scale the points
-    ref.current.material.size = 0.08 + Math.sin(t * 0.5) * 0.01;
+    (ref.current.material as THREE.PointsMaterial).size = 0.08 + Math.sin(t * 0.5) * 0.01;
   });
 
   return (

@@ -172,38 +172,74 @@ export function StageArea({
   scrollOpening?: boolean;
   sparklesActive?: boolean;
 }) {
+  void sparklesActive;
   return (
     <group position={[0, 0, -4]}>
-      {/* Circular marble stage */}
+      {/* Long red velvet aisle carpet — runs from stage toward the entrance */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 6]}>
+        <planeGeometry args={[1.6, 14]} />
+        <meshBasicMaterial color="#5a0f1c" />
+      </mesh>
+      {/* Gold trim along carpet edges */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.82, 0.007, 6]}>
+        <planeGeometry args={[0.04, 14]} />
+        <meshBasicMaterial color="#c9a24a" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.82, 0.007, 6]}>
+        <planeGeometry args={[0.04, 14]} />
+        <meshBasicMaterial color="#c9a24a" />
+      </mesh>
+
+      {/* Circular red velvet stage */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <circleGeometry args={[1.8, 32]} />
-        <meshBasicMaterial color="#e8e0d8" />
+        <meshBasicMaterial color="#6a0f22" />
       </mesh>
-      {/* Stage rim */}
+      {/* Gold stage rim */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
-        <ringGeometry args={[1.75, 1.88, 32]} />
-        <meshBasicMaterial color="#d0c8c0" />
+        <ringGeometry args={[1.75, 1.92, 48]} />
+        <meshBasicMaterial color="#c9a24a" />
       </mesh>
-      {/* Inner decorative ring */}
+      {/* Inner gold ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.025, 0]}>
-        <ringGeometry args={[1.2, 1.23, 24]} />
-        <meshBasicMaterial color="#c8c0b8" transparent opacity={0.5} />
+        <ringGeometry args={[1.2, 1.23, 32]} />
+        <meshBasicMaterial color="#e6c078" transparent opacity={0.7} />
       </mesh>
 
       {/* Pedestal */}
       <group position={[0, 0, -1]}>
         <mesh position={[0, 0.4, 0]}>
           <cylinderGeometry args={[0.14, 0.18, 0.8, 8]} />
-          <meshBasicMaterial color="#5a4030" />
+          <meshBasicMaterial color="#3a1a0f" />
         </mesh>
         <mesh position={[0, 0.82, 0]}>
           <cylinderGeometry args={[0.18, 0.14, 0.04, 8]} />
-          <meshBasicMaterial color="#5a4030" />
+          <meshBasicMaterial color="#c9a24a" />
         </mesh>
         <Scroll onClick={onScrollClick} opening={scrollOpening} />
       </group>
 
-      {/* White roses ring */}
+      {/* Flanking lantern posts either side of the stage */}
+      {([[-2.4, 0], [2.4, 0], [-2.6, -1.5], [2.6, -1.5], [-2.2, 1.2], [2.2, 1.2]] as const).map(
+        ([x, z], i) => (
+          <group key={i} position={[x, 0, z]}>
+            <mesh position={[0, 0.6, 0]}>
+              <cylinderGeometry args={[0.02, 0.03, 1.2, 6]} />
+              <meshBasicMaterial color="#2a1810" />
+            </mesh>
+            <mesh position={[0, 1.25, 0]}>
+              <sphereGeometry args={[0.09, 8, 8]} />
+              <meshBasicMaterial color="#ffcc70" transparent opacity={0.9} />
+            </mesh>
+            <mesh position={[0, 1.25, 0]}>
+              <sphereGeometry args={[0.14, 8, 8]} />
+              <meshBasicMaterial color="#ffaa50" transparent opacity={0.25} />
+            </mesh>
+          </group>
+        ),
+      )}
+
+      {/* Rose petals scattered on carpet */}
       {Array.from({ length: 12 }).map((_, i) => {
         const angle = (i / 12) * Math.PI * 2;
         const r = 1.5;
@@ -211,12 +247,11 @@ export function StageArea({
           <Rose
             key={`w${i}`}
             position={[Math.cos(angle) * r, 0.05, Math.sin(angle) * r]}
-            color="#f0e8e8"
+            color="#f8e0e0"
           />
         );
       })}
 
-      {/* Red roses ring */}
       {Array.from({ length: 8 }).map((_, i) => {
         const angle = (i / 8) * Math.PI * 2 + 0.2;
         const r = 1.3;
@@ -229,10 +264,10 @@ export function StageArea({
         );
       })}
 
-      {/* Fairy lights — glowing dots around stage edge */}
+      {/* Fairy lights around stage edge */}
       {Array.from({ length: 24 }).map((_, i) => {
         const angle = (i / 24) * Math.PI * 2;
-        const r = 1.8;
+        const r = 1.85;
         return (
           <FairyLightDot
             key={i}
