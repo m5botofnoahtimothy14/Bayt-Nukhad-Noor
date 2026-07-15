@@ -163,15 +163,16 @@ function FamilyChapter() {
 
 
       {/* Observatory teaser */}
-      <Section eyebrow="V. The Observatory" title="The quietest room in the house.">
+      <Section eyebrow="IV. The Observatory" title="The quietest room in the house.">
         <div className="mx-auto max-w-lg text-center">
           <p
             className="serif text-base italic leading-relaxed md:text-lg"
             style={{ color: "oklch(0.85 0.04 25 / 80%)" }}
           >
             Floor-to-ceiling windows. A telescope. A warm desk lamp.
-            A cat sleeping nearby, and slow music that never asks to be turned up.
+            Slow music that never asks to be turned up.
           </p>
+
           <p
             className="serif mt-6 text-[10px] uppercase tracking-[0.5em]"
             style={{ color: "oklch(0.75 0.10 25 / 60%)" }}
