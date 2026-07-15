@@ -39,6 +39,7 @@ const bucket = [
 ];
 
 function FamilyChapter() {
+  const [boothOpen, setBoothOpen] = useState(false);
   return (
     <div
       className="scene relative min-h-screen"
@@ -48,6 +49,8 @@ function FamilyChapter() {
         color: "oklch(0.92 0.03 30)",
       }}
     >
+      {boothOpen && <PhotoBooth onCapture={() => setBoothOpen(false)} onClose={() => setBoothOpen(false)} />}
+
       {/* Hero */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-center px-6 text-center">
         <motion.p
