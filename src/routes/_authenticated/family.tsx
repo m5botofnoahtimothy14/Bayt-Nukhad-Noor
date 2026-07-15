@@ -106,28 +106,8 @@ function FamilyChapter() {
         </div>
       </Section>
 
-      {/* Our Little Family */}
-      <Section eyebrow="II. Our Little Family" title="A cat, a shared quiet.">
-        <div className="mx-auto max-w-xl text-center">
-          <motion.div
-            className="mx-auto mb-8 text-6xl"
-            initial={{ scale: 0.8, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.4 }}
-          >
-            🐈
-          </motion.div>
-          <p
-            className="serif text-base italic leading-relaxed md:text-lg"
-            style={{ color: "oklch(0.85 0.04 25 / 80%)" }}
-          >
-            Mochi is the first member of our little family.
-            She sleeps in the sunlight, watches butterflies,
-            and — occasionally — decides we deserve her attention.
-          </p>
-        </div>
-      </Section>
+
+
 
       {/* Bucket List */}
       <Section eyebrow="III. The Bucket List" title="Little dreams, torn from a notebook.">
