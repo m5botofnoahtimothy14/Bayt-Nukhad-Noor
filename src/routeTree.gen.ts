@@ -13,6 +13,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWorldRouteImport } from './routes/_authenticated/world'
+import { Route as AuthenticatedHomeDoorsRouteImport } from './routes/_authenticated/home-doors'
+import { Route as AuthenticatedFamilyRouteImport } from './routes/_authenticated/family'
+import { Route as AuthenticatedChapterRouteImport } from './routes/_authenticated/chapter'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -33,15 +36,36 @@ const AuthenticatedWorldRoute = AuthenticatedWorldRouteImport.update({
   path: '/world',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHomeDoorsRoute = AuthenticatedHomeDoorsRouteImport.update({
+  id: '/home-doors',
+  path: '/home-doors',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFamilyRoute = AuthenticatedFamilyRouteImport.update({
+  id: '/family',
+  path: '/family',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChapterRoute = AuthenticatedChapterRouteImport.update({
+  id: '/chapter',
+  path: '/chapter',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapter': typeof AuthenticatedChapterRoute
+  '/family': typeof AuthenticatedFamilyRoute
+  '/home-doors': typeof AuthenticatedHomeDoorsRoute
   '/world': typeof AuthenticatedWorldRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapter': typeof AuthenticatedChapterRoute
+  '/family': typeof AuthenticatedFamilyRoute
+  '/home-doors': typeof AuthenticatedHomeDoorsRoute
   '/world': typeof AuthenticatedWorldRoute
 }
 export interface FileRoutesById {
@@ -49,14 +73,25 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/chapter': typeof AuthenticatedChapterRoute
+  '/_authenticated/family': typeof AuthenticatedFamilyRoute
+  '/_authenticated/home-doors': typeof AuthenticatedHomeDoorsRoute
   '/_authenticated/world': typeof AuthenticatedWorldRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/world'
+  fullPaths: '/' | '/auth' | '/chapter' | '/family' | '/home-doors' | '/world'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/world'
-  id: '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/world'
+  to: '/' | '/auth' | '/chapter' | '/family' | '/home-doors' | '/world'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/chapter'
+    | '/_authenticated/family'
+    | '/_authenticated/home-doors'
+    | '/_authenticated/world'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,14 +130,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorldRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home-doors': {
+      id: '/_authenticated/home-doors'
+      path: '/home-doors'
+      fullPath: '/home-doors'
+      preLoaderRoute: typeof AuthenticatedHomeDoorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/family': {
+      id: '/_authenticated/family'
+      path: '/family'
+      fullPath: '/family'
+      preLoaderRoute: typeof AuthenticatedFamilyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chapter': {
+      id: '/_authenticated/chapter'
+      path: '/chapter'
+      fullPath: '/chapter'
+      preLoaderRoute: typeof AuthenticatedChapterRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedChapterRoute: typeof AuthenticatedChapterRoute
+  AuthenticatedFamilyRoute: typeof AuthenticatedFamilyRoute
+  AuthenticatedHomeDoorsRoute: typeof AuthenticatedHomeDoorsRoute
   AuthenticatedWorldRoute: typeof AuthenticatedWorldRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedChapterRoute: AuthenticatedChapterRoute,
+  AuthenticatedFamilyRoute: AuthenticatedFamilyRoute,
+  AuthenticatedHomeDoorsRoute: AuthenticatedHomeDoorsRoute,
   AuthenticatedWorldRoute: AuthenticatedWorldRoute,
 }
 
