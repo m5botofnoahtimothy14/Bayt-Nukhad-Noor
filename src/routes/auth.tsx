@@ -23,7 +23,7 @@ function AuthPage() {
   useEffect(() => {
     setMounted(true);
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/world", replace: true });
+      if (data.session) navigate({ to: "/chapter", replace: true });
     });
   }, [navigate]);
 
@@ -49,7 +49,7 @@ function AuthPage() {
             password: AUTH_PASSWORD,
           });
         }
-        navigate({ to: "/world", replace: true });
+        navigate({ to: "/chapter", replace: true });
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Something went wrong");
         setLoading(false);
