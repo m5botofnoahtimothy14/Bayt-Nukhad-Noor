@@ -168,14 +168,19 @@ function FamilyChapter() {
             Soft curtains, a warm lamp, and a camera that develops photographs slowly —
             the way memories should form.
           </p>
-          <p
-            className="serif mt-6 text-[10px] uppercase tracking-[0.5em]"
-            style={{ color: "oklch(0.75 0.10 25 / 60%)" }}
+          <button
+            onClick={() => setBoothOpen(true)}
+            className="serif mt-8 rounded-full px-8 py-3 text-sm italic text-primary-foreground transition-all hover:brightness-110 hover:scale-[1.02]"
+            style={{
+              background: "linear-gradient(135deg, oklch(0.72 0.14 15), oklch(0.60 0.14 350))",
+              boxShadow: "0 4px 20px oklch(0.65 0.14 15 / 30%)",
+            }}
           >
-            coming soon to the album
-          </p>
+            Step inside the booth
+          </button>
         </div>
       </Section>
+
 
       {/* Observatory teaser */}
       <Section eyebrow="V. The Observatory" title="The quietest room in the house.">
