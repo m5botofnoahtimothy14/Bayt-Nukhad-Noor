@@ -12,6 +12,7 @@ import { SceneCanvas } from "@/components/world/SceneCanvas";
 import { LoadingScreen } from "@/components/world/LoadingScreen";
 import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
 import { WishOverlay } from "@/components/world/WishOverlay";
+import { ObservatoryVignette } from "@/components/world/ObservatoryVignette";
 import { toast } from "sonner";
 
 import {
@@ -378,6 +379,7 @@ function World() {
 
       {/* Wish-on-a-star overlay (balcony + observatory) */}
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}
+      {loc === "observatory" && <ObservatoryVignette />}
 
       {/* #3: Partner "last seen" indicator */}
       {partnerSeen && partnerSeen.location !== loc && (
