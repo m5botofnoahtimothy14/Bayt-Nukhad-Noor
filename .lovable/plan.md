@@ -1,106 +1,67 @@
-# Redesign: Every Room Gets Its Own Soul
+# The Family Chapter
 
-Right now every scene is basically "click a hotspot → post a note." That's why it feels flat. Below is a per-scene feature redesign so each place *does* something only it can do, plus a curated list of free GLTF/HDR downloads you can drop in.
+This is a large phase. Nothing existing is deleted — the House, its rooms, models, animations, and code all stay. We add a new primary destination ("The Family") and gate the house entrance behind a handwritten note.
 
----
-
-## Per-scene feature redesign
-
-### 🏠 Living Room (House)
-- **Shared Fireplace** — click to light. Both accounts see the same flame state in realtime (Supabase channel). Warmth level decays over hours; either person can "add a log."
-- **Vinyl Player** — pick a track from a shared playlist; the other person sees the needle drop live and hears the same song if the tab is open.
-- **Wall Clock** — shows *both* your local times side by side (Noah's / Khadija's timezone).
-
-### 🍳 Kitchen
-- **Recipe Jar** — write a recipe together, one ingredient at a time (turn-based: you add, she adds).
-- **Tea Ritual** — click the kettle → steam animation → sends a "tea is ready 🍵" push/notification to the other person.
-- **Fridge Notes** — sticky notes visible only in the kitchen, magnet-drag positioning saved to DB.
-
-### 🍽️ Dining Room
-- **Set the Table for Two** — schedule a "virtual dinner" at a time; both plates glow when the other arrives. Candle-lit countdown.
-- **Gratitude Plate** — one small thing you're grateful for today, one per person per day, appears on the table.
-
-### 🛏️ Bedroom
-- **Dream Journal** — write on waking; entries fold into origami on the nightstand.
-- **Goodnight Lamp** — click to turn off your lamp. The other person's lamp dims in realtime. When both are off = "we're both asleep."
-- **Pillow Letters** — long-form private letters, only readable at night phase.
-
-### 🌸 Memory Garden
-- **Plant a Memory** — each memory grows a unique flower (species chosen by mood tag). Flowers age with the memory's date.
-- **Water each other's flowers** — keeps them blooming; unwatered ones wilt (but never die).
-- **Seasonal bloom cycle** driven by real season.
-
-### 🌙 Stargazing Balcony
-- **Wish on a Star** — click a star, write a wish. Star brightens permanently in the shared sky.
-- **Constellation Builder** — connect stars with lines to draw shapes together (collaborative canvas over the night sky).
-
-### 🔭 Observatory
-- **Real Sky** — pull live moon phase + today's visible planets (open API) and render them accurately.
-- **Anniversary Sky** — rewind the sky to how it looked on a chosen date (birthday, first meeting).
-
-### 🌊 Moon Lake
-- **Paper Boats** — write a message, fold it into a boat, launch it. Physically drifts across the lake in realtime for the other to catch on their side.
-- **Skipping Stones** — throw a stone → ripples carry a one-word feeling (miss you / thinking of you / safe).
-
-### 🌲 Whispering Forest
-- **Firefly Whispers** — record a 5-sec voice note; it becomes a firefly. Other person walks near it → it plays.
-- **Carved Trees** — carve initials/dates into bark; persistent, weathering with time.
-
-### 🌧️ Rain Meadow
-- **Shared Umbrella** — when both online, one umbrella appears; standing under it together triggers a subtle heart pulse.
-- **Rain-writing** — words traced in the wet grass fade after 10 min (ephemeral thoughts).
-
-### 🐈 The Cat (Noor)
-- Roams between rooms based on time + weather.
-- **Feed / pet / call** actions. Purr level = shared mood indicator.
-- Occasionally brings a "gift" (a random old memory resurfaced).
+I'll build it in ordered passes so each step is verifiable in the preview.
 
 ---
 
-## GLTF & HDR asset downloads (all free, commercial-OK)
+## Pass 1 — Proposal polish (quick wins first)
 
-### 3D models — Poly Pizza (CC-BY / CC0)
-- Cozy bedroom: https://poly.pizza/m/6C0mIRA5DE
-- Living room set: https://poly.pizza/m/9jFDGKGyDIw
-- Kitchen: https://poly.pizza/m/aBg2VUZ8Zzp
-- Dining table + chairs: https://poly.pizza/m/9pDkQyZTBWx
-- Fireplace: https://poly.pizza/m/eBRLPCyPVGa
-- Vinyl player: https://poly.pizza/m/dHnPy1eFxN
-- Lantern: https://poly.pizza/m/8N1nUq0ZgAj
-- Telescope: https://poly.pizza/m/eFPQI7HkKUw
-- Paper boat: https://poly.pizza/m/2mL0lyPZzYy
-- Cat (rigged): https://poly.pizza/m/2Dvs1qMz5vp
-- Flowers pack: https://poly.pizza/m/cQAjkfKfHhh
-- Trees pack: https://poly.pizza/m/f7EnCgTf5B
+1. **Red carpet on the proposal stage.** Recolor the stage/aisle plane in `StageArea` / `ProposalScene` from ivory to a deep velvet crimson (`oklch(0.35 0.15 25)`) with a subtle gold trim. Marble floor of the walkway stays.
+2. **Lanterns + particles beside the stage.** Reuse the opening-scene `WalkwayLanterns` + `ProposalDust` at the stage — mirrored clusters flanking the scroll, warm amber, gently bobbing. Sparkles already active; increase count near the stage.
+3. **Smooth zoom-in instead of camera walk.** Replace the `CameraRig` walk (z: 8 → -1.5) with a cinematic dolly-zoom: camera eases from z:8 → z:2 with easing curve, fov breathing 50 → 42, no wobble/shake. Candles still ignite along the path in sync with the zoom progress. No functional phases change — `walkProgress` still drives candles/brightness.
 
-### Marketplaces (search these for higher fidelity)
-- **Sketchfab (Downloadable + CC filter)**: https://sketchfab.com/3d-models?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b
-- **Quaternius (100% free CC0)**: https://quaternius.com/
-- **Kenney assets (CC0)**: https://kenney.nl/assets/category:3D
+## Pass 2 — Login gate after the letter
 
-### HDR environments (free)
-- **Poly Haven HDRIs**: https://polyhaven.com/hdris  
-  Recommended: `moonlit_golf`, `dikhololo_night`, `kloppenheim_06_puresky`, `venice_sunset`, `symmetrical_garden_02`
+Currently after "Yes" the sequence flows: `yes-path` → `welcome-text` → `enter-house` → `/world`.
 
-### Where to place them
-Drop `.glb` files into `public/models/` and `.hdr` files into `public/hdri/`. The scene components already reference `/models/bedroom.glb` etc. — just match filenames.
+Change to: after `yes-path`, redirect to `/auth` (Lovable Cloud auth is already scaffolded). On successful sign-in, land on a new route `/chapter` that presents two choices in the same cinematic language as the parchment:
+
+- **"The house is reserved."** → enters the gated house corridor (see Pass 3). Same cinematic entrance, but the door stays closed with Noah's note.
+- **"Family begins here."** → enters The Family chapter (Pass 4).
+
+Both options remain available; this is a chapter selector, not a one-shot fork.
+
+## Pass 3 — The House becomes a symbol of the future
+
+- Keep `/world` and all rooms/models intact — no deletions.
+- New route `/home-doors` (or reuse a lead-in to `/world`): renders the existing exterior pathway, warm windows, lantern glow, the cat occasionally crossing, birds overhead. The large doors remain closed. No lock, no banner.
+- Beside the doors, a small handwritten parchment note (reuse `ParchmentOverlay` styling, smaller, pinned): Noah's exact text ("Our Home / This door isn't closed / It's waiting…").
+- Clicking the doors: soft ambient dimming, doors don't open, note gently glows. No error.
+- The `/world` interior route is preserved for later; simply not linked from the chapter selector.
+
+## Pass 4 — The Family chapter (`/family`)
+
+A cinematic scroll-through with soft section transitions (framer-motion, no cards). Sections:
+
+1. **Our Dreams** — full-bleed handwritten lines fading in over a soft dawn scene. Phrases prefixed with "If God wills…", "Maybe one day…", "I hope…". No lists — poetic paragraphs.
+2. **Our Little Family** — the cat wanders freely (reuse `RealCat` with expanded idle behaviors: sleep, stretch, chase butterflies, follow cursor). Click the cat → purr + head-tilt.
+3. **The Bucket List** — scrapbook pages, hand-torn paper texture, ink handwriting. Each dream is a page turn (framer-motion). Completed dreams bloom into a pressed-flower illustration instead of a checkmark. Add-dream input styled as an inkwell prompt.
+4. **The Memory Booth** — cozy wooden booth SVG/CSS, curtain draw animation, 3-2-1 flash (uses webcam via `getUserMedia`), photo strip develops with a slow filter transition. Strips saved to Lovable Cloud (`family_photos` table with RLS: owner-only) and rendered as a growing album wall.
+5. **The Surprise Chapter** — hidden. Discovered by hovering a specific object (a small suitcase in the corner of Our Little Family). Reveals environmental clues over multiple visits (boarding pass with blurred details, passport, circled calendar, tiny plane) — none reveal the full story.
+6. **The Observatory** — reuse existing `ObservatoryScene`. Add: dwell timer (30–45s of no interaction) → desk lamp glow + folded note appears → opens to three choices: Hug Me / Sit With Me / Kiss. Each is a short cinematic vignette (framer-motion camera easing + ambient audio cue), then the room returns exactly as it was.
+
+## Pass 5 — Backend + housekeeping
+
+- Add `family_dreams` and `family_photos` tables to Lovable Cloud with RLS (owner-only read/write via `auth.uid()`), plus `GRANT` blocks.
+- Register the new routes; no changes to `routeTree.gen.ts` by hand (Vite plugin regenerates).
+- Preserve all existing SEO/head metadata; add head() for `/chapter`, `/family`, and `/home-doors`.
+- Fix any outstanding security scan findings (RLS, grants).
 
 ---
 
-## Build order (phased)
+## Technical notes
 
-1. Wire up GLTF + HDR loading pipeline (drei `useGLTF` + `Environment files={hdr}`) — one shared helper.
-2. Living Room: fireplace + clock + vinyl (proves the realtime pattern).
-3. Bedroom: goodnight lamp + dream journal.
-4. Garden: plant-a-memory flower system.
-5. Lake: paper boats with realtime drift.
-6. Balcony + Observatory: shared sky + wishes.
-7. Kitchen + Dining: rituals + notifications.
-8. Forest + Meadow: voice fireflies + ephemeral writing.
-9. Cat: cross-scene roaming + gifts.
-
-Each phase adds one migration (features table + realtime channel) and one scene rewrite. I'll do them in that order unless you want to reorder.
+- **No new heavy 3D assets required** — reuse existing GLTFs (cat, houseplants, lantern, telescope, vinyl player, outdoor couch, books). Booth, bucket list, dreams are 2D/CSS/framer-motion for warmth + performance.
+- **Fonts / colors** stay in `src/styles.css` design tokens; add `--color-carpet-red`, `--color-ink`, `--color-parchment-warm`.
+- **Camera zoom** replaces walk math in `useProposalSequence` — `walkProgress` continues to drive candle count and brightness so no downstream code changes.
+- **Auth**: the existing `/auth` route + `_authenticated` gate is reused. `/chapter`, `/family`, `/home-doors` live under `_authenticated/`.
+- **Cat behavior**: extend `RealCat` state machine with `sleep | stretch | wander | chase | follow` states, weighted random transitions.
+- **Memory Booth webcam**: gracefully degrades if permission denied — user can upload a photo instead.
 
 ---
 
-**Reply "go" and I'll start with phase 1 (GLTF pipeline + Living Room fireplace/clock/vinyl).** Or tell me which room to build first and I'll jump straight there.
+## Scope check before I start
+
+This is roughly a full day of building. I'll ship it in the 5 passes above and let you see each pass live before moving to the next. If you'd rather I collapse passes (e.g. skip the login gate and jump straight to `/family`), tell me now — otherwise I'll begin with Pass 1 (proposal polish) immediately.
