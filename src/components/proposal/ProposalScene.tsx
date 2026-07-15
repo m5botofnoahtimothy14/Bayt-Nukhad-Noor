@@ -6,7 +6,7 @@ import { Stars, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { CandlePath } from "./CandlePath";
 import { StageArea } from "./StageArea";
-import { ProposalDust } from "./ProposalParticles";
+import { ProposalDust, FallingPetals, RisingEmbers, StageHalo } from "./ProposalParticles";
 
 type ProposalSceneProps = {
   walkProgress: number;
@@ -187,27 +187,32 @@ export function ProposalScene({
         sparklesActive={sparklesActive}
       />
 
-      {/* Sparkles + dust — dense around the stage */}
+      {/* Romantic particle stack — sparkles, embers, petals, halo, dust */}
       {sparklesActive && (
         <>
-          <Sparkles count={60} scale={[6, 3, 12]} size={1.4} speed={0.25} color="#ffe8c0" opacity={0.45} />
+          <StageHalo active />
+          <Sparkles count={80} scale={[7, 3.5, 12]} size={1.6} speed={0.22} color="#ffcbd8" opacity={0.5} />
           <group position={[0, 0, -4]}>
-            <Sparkles count={40} scale={[4, 2, 4]} size={1.6} speed={0.3} color="#ffd280" opacity={0.55} />
+            <Sparkles count={55} scale={[4.5, 2.4, 4.5]} size={2} speed={0.28} color="#ffb890" opacity={0.65} />
           </group>
-          <ProposalDust count={60} active />
+          <RisingEmbers count={36} active />
+          <FallingPetals count={55} active />
+          <ProposalDust count={70} active />
         </>
       )}
 
-      {/* Minimal postprocessing — just bloom for the glow effect */}
+      {/* Minimal postprocessing — bloom for warm glow */}
       <EffectComposer multisampling={0}>
         <Bloom
-          intensity={0.6}
-          luminanceThreshold={0.4}
-          luminanceSmoothing={0.5}
+          intensity={0.85}
+          luminanceThreshold={0.35}
+          luminanceSmoothing={0.55}
           kernelSize={KernelSize.LARGE}
           mipmapBlur
         />
+        <Vignette eskil={false} offset={0.25} darkness={0.55} />
       </EffectComposer>
+
     </Canvas>
   );
 }
