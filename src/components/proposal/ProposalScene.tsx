@@ -6,7 +6,7 @@ import { Stars, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { CandlePath } from "./CandlePath";
 import { StageArea } from "./StageArea";
-import { ProposalDust } from "./ProposalParticles";
+import { ProposalDust, FallingPetals, RisingEmbers, StageHalo } from "./ProposalParticles";
 
 type ProposalSceneProps = {
   walkProgress: number;
