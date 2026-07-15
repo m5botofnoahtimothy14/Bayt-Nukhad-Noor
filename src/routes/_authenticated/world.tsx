@@ -379,6 +379,7 @@ function World() {
 
       {/* Wish-on-a-star overlay (balcony + observatory) */}
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}
+      {loc === "observatory" && <ObservatoryVignette />}
 
       {/* #3: Partner "last seen" indicator */}
       {partnerSeen && partnerSeen.location !== loc && (
