@@ -12,6 +12,7 @@ import { SceneCanvas } from "@/components/world/SceneCanvas";
 import { LoadingScreen } from "@/components/world/LoadingScreen";
 import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
 import { WishOverlay } from "@/components/world/WishOverlay";
+import { ObservatoryVignette } from "@/components/world/ObservatoryVignette";
 import { toast } from "sonner";
 
 import {
