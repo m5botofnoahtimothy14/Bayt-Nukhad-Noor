@@ -187,9 +187,15 @@ export function ProposalScene({
         sparklesActive={sparklesActive}
       />
 
-      {/* Sparkles */}
+      {/* Sparkles + dust — dense around the stage */}
       {sparklesActive && (
-        <Sparkles count={30} scale={[5, 3, 10]} size={1.2} speed={0.2} color="#ffe8c0" opacity={0.35} />
+        <>
+          <Sparkles count={60} scale={[6, 3, 12]} size={1.4} speed={0.25} color="#ffe8c0" opacity={0.45} />
+          <group position={[0, 0, -4]}>
+            <Sparkles count={40} scale={[4, 2, 4]} size={1.6} speed={0.3} color="#ffd280" opacity={0.55} />
+          </group>
+          <ProposalDust count={60} active />
+        </>
       )}
 
       {/* Minimal postprocessing — just bloom for the glow effect */}
