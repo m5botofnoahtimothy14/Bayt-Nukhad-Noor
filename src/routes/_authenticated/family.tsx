@@ -110,7 +110,7 @@ function FamilyChapter() {
 
 
       {/* Bucket List */}
-      <Section eyebrow="III. The Bucket List" title="Little dreams, torn from a notebook.">
+      <Section eyebrow="II. The Bucket List" title="Little dreams, torn from a notebook.">
         <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2 lg:grid-cols-3">
           {bucket.map((item, i) => (
             <motion.div
