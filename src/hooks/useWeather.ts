@@ -24,8 +24,10 @@ function randomWeather(): Weather {
   return "storm";
 }
 
+type InternalState = Omit<WeatherState, "setWeather">;
+
 export function useWeather(): WeatherState {
-  const [state, setState] = useState<WeatherState>(() => ({
+  const [state, setState] = useState<InternalState>(() => ({
     current: randomWeather(),
     intensity: 0.3 + Math.random() * 0.7,
     windSpeed: Math.random() * 0.6,
