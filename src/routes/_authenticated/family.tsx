@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { PhotoBooth } from "@/components/memories-room/PhotoBooth";
+
 
 export const Route = createFileRoute("/_authenticated/family")({
   head: () => ({
