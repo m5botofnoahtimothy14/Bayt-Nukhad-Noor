@@ -138,7 +138,7 @@ function FamilyChapter() {
       </Section>
 
       {/* Memory Booth teaser */}
-      <Section eyebrow="IV. The Memory Booth" title="Three… two… one.">
+      <Section eyebrow="III. The Memory Booth" title="Three… two… one.">
         <div className="mx-auto max-w-lg text-center">
           <p
             className="serif text-base italic leading-relaxed md:text-lg"
