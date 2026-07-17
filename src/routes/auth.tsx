@@ -33,24 +33,33 @@ function AuthPage() {
 
     if (username === VALID_USER && password === VALID_PASS) {
       try {
-        const { error } = await supabase.auth.signInWithPassword({
+        // Attempt 1: sign in directly
+        let { error } = await supabase.auth.signInWithPassword({
           email: AUTH_EMAIL,
           password: AUTH_PASSWORD,
         });
+
         if (error) {
-          // If sign-in fails, try to create the account first
+          // Attempt 2: create account then sign in
           await supabase.auth.signUp({
             email: AUTH_EMAIL,
             password: AUTH_PASSWORD,
             options: { data: { display_name: username } },
-          });
-          // Now sign in (whether signUp succeeded or user already existed)
-          await supabase.auth.signInWithPassword({
+          }).catch(() => {});
+          ({ error } = await supabase.auth.signInWithPassword({
             email: AUTH_EMAIL,
             password: AUTH_PASSWORD,
-          });
+          }));
         }
-        navigate({ to: "/chapter", replace: true });
+
+        // Final check: do we have a session?
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate({ to: "/chapter", replace: true });
+        } else {
+          toast.error("Session failed — check that Supabase credentials match .env");
+          setLoading(false);
+        }
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Something went wrong");
         setLoading(false);
