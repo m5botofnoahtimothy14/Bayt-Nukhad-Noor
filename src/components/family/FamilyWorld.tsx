@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { AtriumScene } from "./AtriumScene";
@@ -9,6 +9,8 @@ import { MemoryBoothChamber } from "./MemoryBoothChamber";
 import HiddenSurpriseChamber from "./HiddenSurpriseChamber";
 import ReservedHome from "./ReservedHome";
 import { ObservatoryChamber } from "./ObservatoryChamber";
+import { useFamilyChamberMusic } from "@/hooks/useFamilyChamberMusic";
+import { stopAll } from "@/lib/audioEngine";
 
 export type FamilyChamber =
   | "atrium"
@@ -38,6 +40,16 @@ const CHAMBER_NAMES: Record<FamilyChamber, string> = {
 export function FamilyWorld({ onExit }: FamilyWorldProps) {
   const [chamber, setChamber] = useState<FamilyChamber>("atrium");
   const [direction, setDirection] = useState(1);
+
+  // Per-chamber music with smooth crossfading
+  useFamilyChamberMusic(chamber);
+
+  // Stop family music when unmounting (user exits back to world)
+  useEffect(() => {
+    return () => {
+      stopAll(1500);
+    };
+  }, []);
 
   const navigateTo = useCallback((target: FamilyChamber) => {
     setDirection(1);

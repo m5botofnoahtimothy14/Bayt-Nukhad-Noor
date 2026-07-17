@@ -141,16 +141,53 @@ export const SCENE_MUSIC: Record<string, SceneMusicProfile> = {
     volume: 0.2,
     entryDelayMs: 2000,
   },
-  family: {
+  /* ── Family Chapter — per-chamber music profiles ── */
+  "family-atrium": {
     songs: ["riverFlowsInYou", "carryYouHome", "myLoveMineAllMine", "stargazing"],
+    crossfadeMs: 6000,
+    volume: 0.20,
+    entryDelayMs: 800,
+  },
+  "family-dreams": {
+    songs: ["stargazing", "nuvoleBianche", "myLoveMineAllMine", "riverFlowsInYou"],
     crossfadeMs: 7000,
     volume: 0.18,
-    entryDelayMs: 2000,
+    entryDelayMs: 1200,
+  },
+  "family-little-family": {
+    songs: ["harleysInHawaii", "comptine", "myLoveMineAllMine", "carryYouHome"],
+    crossfadeMs: 5000,
+    volume: 0.20,
+    entryDelayMs: 800,
+  },
+  "family-bucket-list": {
+    songs: ["joTumMereHo", "kesariya", "carryYouHome", "stargazing"],
+    crossfadeMs: 6000,
+    volume: 0.22,
+    entryDelayMs: 1000,
+  },
+  "family-memory-booth": {
+    songs: ["clairDeLune", "riverFlowsInYou", "comptine", "nuvoleBianche"],
+    crossfadeMs: 7000,
+    volume: 0.18,
+    entryDelayMs: 1200,
+  },
+  "family-hidden-surprise": {
+    songs: ["nuvoleBianche", "moonlightSonata", "stargazing", "clairDeLune"],
+    crossfadeMs: 8000,
+    volume: 0.16,
+    entryDelayMs: 1500,
+  },
+  "family-reserved-home": {
+    songs: ["carryYouHome", "myLoveMineAllMine", "riverFlowsInYou", "joTumMereHo"],
+    crossfadeMs: 7000,
+    volume: 0.18,
+    entryDelayMs: 1000,
   },
   "family-observatory": {
     songs: ["stargazing", "moonlightSonata", "nuvoleBianche", "clairDeLune"],
     crossfadeMs: 8000,
     volume: 0.15,
-    entryDelayMs: 3000,
+    entryDelayMs: 1500,
   },
 };

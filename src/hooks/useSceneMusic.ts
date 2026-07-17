@@ -16,8 +16,9 @@ import {
  * useSceneMusic — plays music for the current scene.
  * Crossfades between 2 songs in the profile.
  * Handles scene changes with cinematic fade transitions.
+ * Accepts `paused` to stop music when an overlay (e.g. family chapter) is active.
  */
-export function useSceneMusic(location: string) {
+export function useSceneMusic(location: string, paused = false) {
   const songIndex = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastLocation = useRef(location);
@@ -61,6 +62,17 @@ export function useSceneMusic(location: string) {
 
   // On location change: fade out old, fade in new
   useEffect(() => {
+    // When paused (e.g. family chapter overlay), stop music
+    if (paused) {
+      if (intervalRef.current) {
+        clearTimeout(intervalRef.current);
+        intervalRef.current = null;
+      }
+      stopAll(1500);
+      startedRef.current = false;
+      return;
+    }
+
     if (location === lastLocation.current && startedRef.current) return;
     lastLocation.current = location;
 

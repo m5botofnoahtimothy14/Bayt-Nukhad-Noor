@@ -81,7 +81,7 @@ const LOCATIONS: {
   { id: "kitchen", name: "Kitchen", icon: UtensilsCrossed, hint: "where we cook" },
   { id: "dining", name: "Dining Room", icon: Utensils, hint: "shared meals" },
   { id: "bedroom", name: "Bedroom", icon: BedDouble, hint: "our sanctuary" },
-  { id: "garden", name: "Memory Garden", icon: Flower2, hint: "flowers of us" },
+  { id: "garden", name: "Memory Garden", icon: Flower2, hint: "a door awaits" },
   { id: "balcony", name: "Stargazing Balcony", icon: Moon, hint: "beneath the stars" },
   { id: "observatory", name: "Observatory", icon: Star, hint: "our sky" },
   { id: "lake", name: "Moon Lake", icon: Waves, hint: "paper boats" },
@@ -257,6 +257,7 @@ function JournalPanel({ open, onClose }: { open: boolean; onClose: () => void })
 function World() {
   const [loc, setLoc] = useState<Loc>("house");
   const [transitioning, setTransitioning] = useState(false);
+  const [familyOpen, setFamilyOpen] = useState(false);
   const phase = useTimeOfDay();
   const season = useSeason();
   const weather = useWeather();
@@ -265,8 +266,8 @@ function World() {
   // Preload 3D models on mount
   usePreloadModels();
 
-  // Scene music — crossfades between songs per room
-  useSceneMusic(loc);
+  // Scene music — crossfades between songs per room (paused when family chapter is open)
+  useSceneMusic(loc, familyOpen);
 
   // #6: Notify when partner adds a memory elsewhere
   useMemoryNotifications(loc);
@@ -294,7 +295,6 @@ function World() {
   } | null>(null);
   const [viewing, setViewing] = useState<Memory | null>(null);
   const [journalOpen, setJournalOpen] = useState(false);
-  const [familyOpen, setFamilyOpen] = useState(false);
 
   // #4: Undo/redo for memory creation
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
@@ -385,6 +385,36 @@ function World() {
       {/* Wish-on-a-star overlay (balcony + observatory) */}
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}
       {loc === "observatory" && <ObservatoryVignette />}
+
+      {/* Family chapter door — visible in the garden */}
+      {loc === "garden" && !familyOpen && (
+        <button
+          onClick={() => setFamilyOpen(true)}
+          className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2 group"
+          style={{ animation: "fade-up 1s ease-out 0.5s both" }}
+        >
+          <div className="relative flex flex-col items-center gap-3">
+            {/* Door frame */}
+            <div
+              className="relative w-20 h-32 rounded-t-[40px] border-2 border-[oklch(0.7_0.12_55/40%)] bg-[oklch(0.15_0.04_280/60%)] backdrop-blur-sm transition-all duration-500 group-hover:border-[oklch(0.8_0.14_55/70%)] group-hover:bg-[oklch(0.15_0.04_280/80%)] group-hover:shadow-[0_0_40px_oklch(0.7_0.12_55/25%)]"
+              style={{
+                boxShadow: "0 0 20px oklch(0.7 0.12 55 / 10%), inset 0 0 30px oklch(0.15 0.04 280 / 40%)",
+              }}
+            >
+              {/* Window glow */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[oklch(0.85_0.1_55/20%)] blur-sm" />
+              {/* Door knob */}
+              <div className="absolute right-3 top-1/2 w-2 h-2 rounded-full bg-[oklch(0.75_0.12_55/60%)] group-hover:bg-[oklch(0.85_0.14_55/80%)] transition-colors" />
+              {/* Light spill from under door */}
+              <div className="absolute -bottom-1 left-2 right-2 h-1 bg-[oklch(0.85_0.1_55/15%)] blur-[2px]" />
+            </div>
+            {/* Label */}
+            <span className="serif italic text-xs text-[oklch(0.7_0.1_55/70%)] group-hover:text-[oklch(0.85_0.12_55/90%)] transition-colors tracking-wide">
+              The Family
+            </span>
+          </div>
+        </button>
+      )}
 
       {/* #3: Partner "last seen" indicator */}
       {partnerSeen && partnerSeen.location !== loc && (
