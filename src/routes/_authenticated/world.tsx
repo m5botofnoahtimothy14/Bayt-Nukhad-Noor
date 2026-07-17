@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeOfDay } from "@/hooks/useTimeOfDay";
@@ -14,10 +14,6 @@ import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
 import { WishOverlay } from "@/components/world/WishOverlay";
 import { ObservatoryVignette } from "@/components/world/ObservatoryVignette";
 import { toast } from "sonner";
-
-const LazyFamilyWorld = lazy(() =>
-  import("@/components/family/FamilyWorld").then((m) => ({ default: m.FamilyWorld })),
-);
 
 import {
   LazyLivingRoomScene,
@@ -50,7 +46,6 @@ import {
   Undo2,
   Redo2,
   Camera,
-  Heart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/world")({
@@ -81,7 +76,7 @@ const LOCATIONS: {
   { id: "kitchen", name: "Kitchen", icon: UtensilsCrossed, hint: "where we cook" },
   { id: "dining", name: "Dining Room", icon: Utensils, hint: "shared meals" },
   { id: "bedroom", name: "Bedroom", icon: BedDouble, hint: "our sanctuary" },
-  { id: "garden", name: "Memory Garden", icon: Flower2, hint: "a door awaits" },
+  { id: "garden", name: "Memory Garden", icon: Flower2, hint: "peaceful blooms" },
   { id: "balcony", name: "Stargazing Balcony", icon: Moon, hint: "beneath the stars" },
   { id: "observatory", name: "Observatory", icon: Star, hint: "our sky" },
   { id: "lake", name: "Moon Lake", icon: Waves, hint: "paper boats" },
@@ -257,7 +252,6 @@ function JournalPanel({ open, onClose }: { open: boolean; onClose: () => void })
 function World() {
   const [loc, setLoc] = useState<Loc>("house");
   const [transitioning, setTransitioning] = useState(false);
-  const [familyOpen, setFamilyOpen] = useState(false);
   const phase = useTimeOfDay();
   const season = useSeason();
   const weather = useWeather();
@@ -266,8 +260,8 @@ function World() {
   // Preload 3D models on mount
   usePreloadModels();
 
-  // Scene music — crossfades between songs per room (paused when family chapter is open)
-  useSceneMusic(loc, familyOpen);
+  // Scene music — crossfades between songs per room
+  useSceneMusic(loc);
 
   // #6: Notify when partner adds a memory elsewhere
   useMemoryNotifications(loc);
@@ -386,36 +380,6 @@ function World() {
       {(loc === "balcony" || loc === "observatory") && <WishOverlay />}
       {loc === "observatory" && <ObservatoryVignette />}
 
-      {/* Family chapter door — visible in the garden */}
-      {loc === "garden" && !familyOpen && (
-        <button
-          onClick={() => setFamilyOpen(true)}
-          className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2 group"
-          style={{ animation: "fade-up 1s ease-out 0.5s both" }}
-        >
-          <div className="relative flex flex-col items-center gap-3">
-            {/* Door frame */}
-            <div
-              className="relative w-20 h-32 rounded-t-[40px] border-2 border-[oklch(0.7_0.12_55/40%)] bg-[oklch(0.15_0.04_280/60%)] backdrop-blur-sm transition-all duration-500 group-hover:border-[oklch(0.8_0.14_55/70%)] group-hover:bg-[oklch(0.15_0.04_280/80%)] group-hover:shadow-[0_0_40px_oklch(0.7_0.12_55/25%)]"
-              style={{
-                boxShadow: "0 0 20px oklch(0.7 0.12 55 / 10%), inset 0 0 30px oklch(0.15 0.04 280 / 40%)",
-              }}
-            >
-              {/* Window glow */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[oklch(0.85_0.1_55/20%)] blur-sm" />
-              {/* Door knob */}
-              <div className="absolute right-3 top-1/2 w-2 h-2 rounded-full bg-[oklch(0.75_0.12_55/60%)] group-hover:bg-[oklch(0.85_0.14_55/80%)] transition-colors" />
-              {/* Light spill from under door */}
-              <div className="absolute -bottom-1 left-2 right-2 h-1 bg-[oklch(0.85_0.1_55/15%)] blur-[2px]" />
-            </div>
-            {/* Label */}
-            <span className="serif italic text-xs text-[oklch(0.7_0.1_55/70%)] group-hover:text-[oklch(0.85_0.12_55/90%)] transition-colors tracking-wide">
-              The Family
-            </span>
-          </div>
-        </button>
-      )}
-
       {/* #3: Partner "last seen" indicator */}
       {partnerSeen && partnerSeen.location !== loc && (
         <div className="pointer-events-none absolute left-1/2 top-28 z-40 -translate-x-1/2 rounded-full border border-white/5 bg-black/20 px-3 py-1 text-[10px] text-muted-foreground/60 backdrop-blur-sm serif italic animate-[fade-up_0.4s_ease-out_both]">
@@ -527,21 +491,6 @@ function World() {
               </button>
             );
           })}
-
-          {/* Divider */}
-          <div className="h-6 w-px bg-white/10 mx-0.5" />
-
-          {/* Family chapter entry */}
-          <button
-            onClick={() => setFamilyOpen(true)}
-            aria-label="The Family"
-            className="group relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-white/5"
-          >
-            <Heart size={16} />
-            <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-xl bg-black/80 px-2.5 py-1 text-[10px] text-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm border border-white/10">
-              The Family
-            </span>
-          </button>
         </div>
       </nav>
 
@@ -554,30 +503,6 @@ function World() {
       />
       <ViewMemoryDialog memory={viewing} onClose={() => setViewing(null)} />
       <JournalPanel open={journalOpen} onClose={() => setJournalOpen(false)} />
-
-      {/* Family Chapter overlay */}
-      {familyOpen && (
-        <div className="fixed inset-0 z-50 bg-[oklch(0.15_0.02_280)]">
-          <Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center">
-                <p className="serif italic text-lg text-muted-foreground/70">opening the family chapter…</p>
-              </div>
-            }
-          >
-            <LazyFamilyWorld onExit={() => setFamilyOpen(false)} />
-          </Suspense>
-
-          {/* Back to the Universe button */}
-          <button
-            onClick={() => setFamilyOpen(false)}
-            className="fixed top-5 left-5 z-[60] flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/50"
-          >
-            <Undo2 size={14} />
-            <span className="serif italic">Back to the Universe</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

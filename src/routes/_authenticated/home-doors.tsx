@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -127,13 +127,6 @@ this home quietly waits for us.
         </div>
       </div>
 
-      <Link
-        to="/chapter"
-        className="serif absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.5em] opacity-60 hover:opacity-100"
-        style={{ color: "oklch(0.85 0.05 25)" }}
-      >
-        ← back
-      </Link>
     </div>
   );
 }
