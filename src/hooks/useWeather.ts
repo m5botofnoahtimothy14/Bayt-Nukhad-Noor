@@ -51,7 +51,6 @@ export function useWeather(): WeatherState {
     setState((prev) => ({ ...prev, current: w }));
   }, []);
 
-  // Attach setter for programmatic use
   return { ...state, setWeather };
 }
 

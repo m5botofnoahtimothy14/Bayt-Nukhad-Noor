@@ -141,4 +141,16 @@ export const SCENE_MUSIC: Record<string, SceneMusicProfile> = {
     volume: 0.2,
     entryDelayMs: 2000,
   },
+  family: {
+    songs: ["riverFlowsInYou", "carryYouHome", "myLoveMineAllMine", "stargazing"],
+    crossfadeMs: 7000,
+    volume: 0.18,
+    entryDelayMs: 2000,
+  },
+  "family-observatory": {
+    songs: ["stargazing", "moonlightSonata", "nuvoleBianche", "clairDeLune"],
+    crossfadeMs: 8000,
+    volume: 0.15,
+    entryDelayMs: 3000,
+  },
 };

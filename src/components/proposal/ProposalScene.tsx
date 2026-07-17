@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { KernelSize } from "postprocessing";
@@ -25,7 +25,7 @@ function smoothStep(edge0: number, edge1: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
-/* ── Glowing lantern dot — no point light, just emissive mesh ── */
+/* ── Glowing lantern dot ── */
 function LanternDot({
   position,
   color,
@@ -36,25 +36,38 @@ function LanternDot({
   delay?: number;
 }) {
   const ref = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   const baseY = position[1];
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime() + delay;
     if (ref.current) {
-      ref.current.position.y = baseY + Math.sin(t * 0.5) * 0.08;
+      ref.current.position.y = baseY + Math.sin(t * 0.5) * 0.1;
       (ref.current.material as THREE.MeshBasicMaterial).opacity =
         0.6 + Math.sin(t * 2.5) * 0.2;
+    }
+    if (glowRef.current) {
+      glowRef.current.position.y = baseY + Math.sin(t * 0.5) * 0.1;
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.08 + Math.sin(t * 2.5) * 0.04;
     }
   });
 
   return (
-    <mesh ref={ref} position={position}>
-      <sphereGeometry args={[0.06, 6, 6]} />
-      <meshBasicMaterial color={color} transparent opacity={0.7} />
-    </mesh>
+    <group>
+      <mesh ref={ref} position={position}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color={color} transparent opacity={0.7} />
+      </mesh>
+      <mesh ref={glowRef} position={position}>
+        <sphereGeometry args={[0.18, 8, 8]} />
+        <meshBasicMaterial color={color} transparent opacity={0.1} depthWrite={false} />
+      </mesh>
+    </group>
   );
 }
 
+/* ── Camera rig — smooth cinematic walk ── */
 function CameraRig({
   walkProgress,
   shake,
@@ -83,8 +96,8 @@ function CameraRig({
       Math.sin(t * 3.1 + 2.0) * 0.3
     ) * 0.006 * shake;
 
-    const breathing = walkProgress < 0.05 ? Math.sin(t * 0.8) * 0.002 : 0;
-    const targetTilt = Math.sin(t * 0.9) * 0.003 * shake;
+    const breathing = walkProgress < 0.05 ? Math.sin(t * 0.8) * 0.003 : 0;
+    const targetTilt = Math.sin(t * 0.9) * 0.004 * shake;
     currentTilt.current += (targetTilt - currentTilt.current) * 0.05;
 
     const lerpFactor = 0.06;
@@ -110,34 +123,155 @@ function CameraRig({
   return null;
 }
 
+/* ── Marble floor with subtle veining ── */
 function MarbleFloor() {
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-      <planeGeometry args={[6, 20]} />
-      <meshBasicMaterial color="#d8d0c8" />
-    </mesh>
-  );
-}
+  const ref = useRef<THREE.Mesh>(null);
 
-function StarCeiling() {
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    // Subtle shimmer on the floor
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      0.01 + Math.sin(t * 0.3) * 0.005;
+  });
+
   return (
     <group>
-      <Stars radius={30} depth={20} count={800} factor={2} saturation={0.2} fade speed={0.3} />
-      <mesh position={[0, 4, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[20, 24]} />
-        <meshBasicMaterial color="#050508" />
+      {/* Main floor */}
+      <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+        <planeGeometry args={[6, 22]} />
+        <meshStandardMaterial
+          color="#d8d0c8"
+          roughness={0.25}
+          metalness={0.05}
+          emissive="#ffeedd"
+          emissiveIntensity={0.01}
+        />
+      </mesh>
+
+      {/* Floor edge lines — subtle marble veins */}
+      {[-2.5, -1, 0.5, 2].map((x, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.001, 0]}>
+          <planeGeometry args={[0.008, 22]} />
+          <meshBasicMaterial color="#c0b8b0" transparent opacity={0.15} />
+        </mesh>
+      ))}
+
+      {/* Floor reflection plane */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
+        <planeGeometry args={[6, 22]} />
+        <meshStandardMaterial
+          color="#e0d8d0"
+          roughness={0.1}
+          metalness={0.15}
+          transparent
+          opacity={0.3}
+        />
       </mesh>
     </group>
   );
 }
 
+/* ── Scattered rose petals along the walkway ── */
+function ScatteredPetals() {
+  const petals = useMemo(() =>
+    Array.from({ length: 35 }).map((_, i) => ({
+      pos: [
+        (Math.random() - 0.5) * 3.5,
+        0.008,
+        (Math.random() - 0.5) * 14,
+      ] as [number, number, number],
+      rot: Math.random() * Math.PI * 2,
+      color: i % 4 === 0 ? "#cc2244" : i % 4 === 1 ? "#dd4466" : i % 4 === 2 ? "#ee8899" : "#f0c0c0",
+      size: 0.02 + Math.random() * 0.03,
+    })),
+    [],
+  );
+
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.children.forEach((child, i) => {
+      const petal = petals[i];
+      if (!petal) return;
+      child.rotation.z = petal.rot + Math.sin(t * 0.2 + i) * 0.1;
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {petals.map((p, i) => (
+        <mesh key={i} position={p.pos} rotation={[-Math.PI / 2, 0, p.rot]}>
+          <circleGeometry args={[p.size, 5]} />
+          <meshBasicMaterial color={p.color} transparent opacity={0.6} side={2} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/* ── Ambient dust particles floating in candlelight ── */
+function AmbientDust() {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const data = useMemo(() =>
+    Array.from({ length: 40 }).map(() => ({
+      x: (Math.random() - 0.5) * 5,
+      y: 0.5 + Math.random() * 3,
+      z: (Math.random() - 0.5) * 14,
+      speed: 0.05 + Math.random() * 0.15,
+      phase: Math.random() * Math.PI * 2,
+      drift: 0.3 + Math.random() * 0.5,
+    })),
+    [],
+  );
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const t = clock.getElapsedTime();
+    const dummy = new THREE.Object3D();
+    data.forEach((d, i) => {
+      dummy.position.set(
+        d.x + Math.sin(t * d.speed + d.phase) * d.drift,
+        d.y + Math.sin(t * d.speed * 0.7 + d.phase) * 0.3,
+        d.z + Math.cos(t * d.speed * 0.5 + d.phase) * d.drift * 0.5,
+      );
+      dummy.updateMatrix();
+      ref.current!.setMatrixAt(i, dummy.matrix);
+    });
+    ref.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, 40]} frustumCulled={false}>
+      <sphereGeometry args={[0.012, 4, 4]} />
+      <meshBasicMaterial color="#ffeedd" transparent opacity={0.2} />
+    </instancedMesh>
+  );
+}
+
+/* ── Star ceiling — deep night sky ── */
+function StarCeiling() {
+  return (
+    <group>
+      <Stars radius={35} depth={25} count={1200} factor={2.5} saturation={0.15} fade speed={0.2} />
+      <mesh position={[0, 4.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[24, 28]} />
+        <meshBasicMaterial color="#030308" />
+      </mesh>
+    </group>
+  );
+}
+
+/* ── Walkway lanterns — upgraded with glow halos ── */
 function WalkwayLanterns() {
   const lanterns: { pos: [number, number, number]; color: string; delay: number }[] = [];
   const colors = ["#ffe0a0", "#ffd080", "#ffb050"];
-  for (let i = 0; i < 6; i++) {
-    const z = 5 - i * 1.5;
-    lanterns.push({ pos: [-1.8, 0.5, z], color: colors[i % 3], delay: i * 0.7 });
-    lanterns.push({ pos: [1.8, 0.5, z], color: colors[(i + 1) % 3], delay: i * 0.7 + 0.35 });
+  for (let i = 0; i < 8; i++) {
+    const z = 6 - i * 1.5;
+    lanterns.push({ pos: [-1.8, 0.55, z], color: colors[i % 3], delay: i * 0.6 });
+    lanterns.push({ pos: [1.8, 0.55, z], color: colors[(i + 1) % 3], delay: i * 0.6 + 0.3 });
   }
   return (
     <group>
@@ -148,6 +282,7 @@ function WalkwayLanterns() {
   );
 }
 
+/* ── Main scene ── */
 export function ProposalScene({
   walkProgress,
   candlesLit,
@@ -161,7 +296,7 @@ export function ProposalScene({
 }: ProposalSceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, 1.3, 8], fov: 50, near: 0.1, far: 50 }}
+      camera={{ position: [0, 1.3, 8], fov: 50, near: 0.1, far: 60 }}
       gl={{
         antialias: false,
         alpha: false,
@@ -170,15 +305,30 @@ export function ProposalScene({
       dpr={[1, 1.25]}
       className="!absolute inset-0"
     >
-      <color attach="background" args={["#050508"]} />
-      <fog attach="fog" args={["#050508", 8, 20]} />
+      <color attach="background" args={["#040408"]} />
+      <fog attach="fog" args={["#040408", 6, 22]} />
 
       <CameraRig walkProgress={walkProgress} shake={cameraShake} />
 
-      <ambientLight intensity={0.15} color="#f0eeff" />
+      <ambientLight intensity={0.12} color="#f0eeff" />
+
+      {/* Spotlight when room awakens */}
+      {spotlightOn && (
+        <spotLight
+          position={[0, 5, -3]}
+          target-position={[0, 0, -4]}
+          angle={0.5}
+          penumbra={0.8}
+          intensity={0.8}
+          color="#fff5e0"
+          castShadow
+        />
+      )}
 
       <StarCeiling />
       <MarbleFloor />
+      <ScatteredPetals />
+      <AmbientDust />
       <CandlePath ignitedCount={candlesLit} totalCandles={24} />
       <WalkwayLanterns />
       <StageArea

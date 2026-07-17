@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeOfDay } from "@/hooks/useTimeOfDay";
@@ -14,6 +14,10 @@ import { ModelErrorBoundary } from "@/components/models/ModelErrorBoundary";
 import { WishOverlay } from "@/components/world/WishOverlay";
 import { ObservatoryVignette } from "@/components/world/ObservatoryVignette";
 import { toast } from "sonner";
+
+const LazyFamilyWorld = lazy(() =>
+  import("@/components/family/FamilyWorld").then((m) => ({ default: m.FamilyWorld })),
+);
 
 import {
   LazyLivingRoomScene,
@@ -46,6 +50,7 @@ import {
   Undo2,
   Redo2,
   Camera,
+  Heart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/world")({
@@ -180,10 +185,9 @@ function JournalPanel({ open, onClose }: { open: boolean; onClose: () => void })
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
-    // journal_entries table not yet created — no-op for now
-    const error = null as null | { message: string };
-    void user;
-    void body;
+    const { error } = await supabase
+      .from("journal_entries" as never)
+      .insert({ created_by: user.id, body: body.trim() } as never);
     setSaving(false);
     if (error) return toast.error("Could not save");
     setBody("");
@@ -290,6 +294,7 @@ function World() {
   } | null>(null);
   const [viewing, setViewing] = useState<Memory | null>(null);
   const [journalOpen, setJournalOpen] = useState(false);
+  const [familyOpen, setFamilyOpen] = useState(false);
 
   // #4: Undo/redo for memory creation
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
@@ -492,6 +497,21 @@ function World() {
               </button>
             );
           })}
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-white/10 mx-0.5" />
+
+          {/* Family chapter entry */}
+          <button
+            onClick={() => setFamilyOpen(true)}
+            aria-label="The Family"
+            className="group relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-white/5"
+          >
+            <Heart size={16} />
+            <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-xl bg-black/80 px-2.5 py-1 text-[10px] text-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm border border-white/10">
+              The Family
+            </span>
+          </button>
         </div>
       </nav>
 
@@ -504,6 +524,30 @@ function World() {
       />
       <ViewMemoryDialog memory={viewing} onClose={() => setViewing(null)} />
       <JournalPanel open={journalOpen} onClose={() => setJournalOpen(false)} />
+
+      {/* Family Chapter overlay */}
+      {familyOpen && (
+        <div className="fixed inset-0 z-50 bg-[oklch(0.15_0.02_280)]">
+          <Suspense
+            fallback={
+              <div className="flex h-full items-center justify-center">
+                <p className="serif italic text-lg text-muted-foreground/70">opening the family chapter…</p>
+              </div>
+            }
+          >
+            <LazyFamilyWorld onExit={() => setFamilyOpen(false)} />
+          </Suspense>
+
+          {/* Back to the Universe button */}
+          <button
+            onClick={() => setFamilyOpen(false)}
+            className="fixed top-5 left-5 z-[60] flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-muted-foreground backdrop-blur-md transition-all hover:text-foreground hover:bg-black/50"
+          >
+            <Undo2 size={14} />
+            <span className="serif italic">Back to the Universe</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
