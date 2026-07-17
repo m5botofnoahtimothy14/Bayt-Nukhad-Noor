@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
-import { useMemoryStrips } from "@/components/memories-room/useMemoryStrips";
+import type { MemoryStrip } from "@/components/memories-room/useMemoryStrips";
 
 type Props = {
   onBack: () => void;
   onOpenBooth?: () => void;
+  strips?: MemoryStrip[];
 };
 
-export function MemoryBoothChamber({ onBack, onOpenBooth }: Props) {
-  const { strips } = useMemoryStrips();
+export function MemoryBoothChamber({ onBack, onOpenBooth, strips = [] }: Props) {
 
   return (
     <div

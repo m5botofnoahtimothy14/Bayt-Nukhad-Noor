@@ -9,6 +9,8 @@ import { MemoryBoothChamber } from "./MemoryBoothChamber";
 import HiddenSurpriseChamber from "./HiddenSurpriseChamber";
 import ReservedHome from "./ReservedHome";
 import { ObservatoryChamber } from "./ObservatoryChamber";
+import { PhotoBooth } from "@/components/memories-room/PhotoBooth";
+import { useMemoryStrips, type MemoryStrip } from "@/components/memories-room/useMemoryStrips";
 import { useFamilyChamberMusic } from "@/hooks/useFamilyChamberMusic";
 import { stopAll } from "@/lib/audioEngine";
 
@@ -40,6 +42,9 @@ const CHAMBER_NAMES: Record<FamilyChamber, string> = {
 export function FamilyWorld({ onExit }: FamilyWorldProps) {
   const [chamber, setChamber] = useState<FamilyChamber>("atrium");
   const [direction, setDirection] = useState(1);
+  const [boothOpen, setBoothOpen] = useState(false);
+  const [, setRefreshKey] = useState(0);
+  const { strips } = useMemoryStrips();
 
   // Per-chamber music with smooth crossfading
   useFamilyChamberMusic(chamber);
@@ -77,7 +82,7 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
       case "bucket-list":
         return <BucketListChamber onBack={goBack} />;
       case "memory-booth":
-        return <MemoryBoothChamber onBack={goBack} />;
+        return <MemoryBoothChamber onBack={goBack} onOpenBooth={() => setBoothOpen(true)} strips={strips} />;
       case "hidden-surprise":
         return <HiddenSurpriseChamber onBack={goBack} />;
       case "reserved-home":
@@ -169,6 +174,17 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
           {renderChamber()}
         </motion.div>
       </AnimatePresence>
+
+      {/* Photo Booth overlay */}
+      {boothOpen && (
+        <PhotoBooth
+          onCapture={(strip: MemoryStrip) => {
+            setBoothOpen(false);
+            setRefreshKey((k) => k + 1);
+          }}
+          onClose={() => setBoothOpen(false)}
+        />
+      )}
     </div>
   );
 }
