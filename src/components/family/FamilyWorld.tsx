@@ -45,6 +45,9 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
   const [boothOpen, setBoothOpen] = useState(false);
   const [, setRefreshKey] = useState(0);
   const { strips } = useMemoryStrips();
+  const [catName, setCatName] = useState<string | null>(() => {
+    try { return localStorage.getItem("family-cat-name"); } catch { return null; }
+  });
 
   // Per-chamber music with smooth crossfading
   useFamilyChamberMusic(chamber);
@@ -66,6 +69,11 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
     setChamber("atrium");
   }, []);
 
+  const handleCatAdopt = useCallback((name: string) => {
+    setCatName(name);
+    localStorage.setItem("family-cat-name", name);
+  }, []);
+
   const exitToWorld = useCallback(() => {
     setDirection(-1);
     onExit();
@@ -78,7 +86,7 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
       case "dreams":
         return <DreamsChamber onBack={goBack} />;
       case "little-family":
-        return <LittleFamilyChamber onBack={goBack} />;
+        return <LittleFamilyChamber onBack={goBack} catName={catName} onAdopt={handleCatAdopt} />;
       case "bucket-list":
         return <BucketListChamber onBack={goBack} />;
       case "memory-booth":
