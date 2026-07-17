@@ -31,14 +31,14 @@ const LOVE_MESSAGES = [
   "You are my dunya & akhirah",
 ];
 
-const STARS = Array.from({ length: 120 }).map((_, i) => ({
+const STARS = Array.from({ length: 200 }).map((_, i) => ({
   id: i,
-  size: 0.8 + (i % 5) * 0.5,
-  left: `${(i * 0.83) % 100}%`,
-  top: `${(i * 0.67) % 70}%`,
-  delay: (i * 0.2) % 10,
-  duration: 1.5 + (i % 6) * 0.7,
-  brightness: 0.5 + (i % 4) * 0.15,
+  size: 0.6 + (i % 6) * 0.4,
+  left: `${(i * 1.37 + 5) % 100}%`,
+  top: `${(i * 0.91 + 3) % 100}%`,
+  delay: (i * 0.15) % 12,
+  duration: 1.2 + (i % 8) * 0.5,
+  brightness: 0.35 + (i % 5) * 0.13,
 }));
 
 const HEARTS = Array.from({ length: 15 }).map((_, i) => ({

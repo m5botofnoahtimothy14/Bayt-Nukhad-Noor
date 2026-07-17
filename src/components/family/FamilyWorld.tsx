@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { AtriumScene } from "./AtriumScene";
 import { DreamsChamber } from "./DreamsChamber";
 import { LittleFamilyChamber } from "./LittleFamilyChamber";
@@ -13,6 +13,8 @@ import { PhotoBooth } from "@/components/memories-room/PhotoBooth";
 import { useMemoryStrips, type MemoryStrip } from "@/components/memories-room/useMemoryStrips";
 import { useFamilyChamberMusic } from "@/hooks/useFamilyChamberMusic";
 import { stopAll } from "@/lib/audioEngine";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type FamilyChamber =
   | "atrium"
@@ -48,6 +50,7 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
   const [catName, setCatName] = useState<string | null>(() => {
     try { return localStorage.getItem("family-cat-name"); } catch { return null; }
   });
+  const [showReset, setShowReset] = useState(false);
 
   // Per-chamber music with smooth crossfading
   useFamilyChamberMusic(chamber);
@@ -72,6 +75,23 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
   const handleCatAdopt = useCallback((name: string) => {
     setCatName(name);
     localStorage.setItem("family-cat-name", name);
+  }, []);
+
+  const resetCat = useCallback(() => {
+    setCatName(null);
+    localStorage.removeItem("family-cat-name");
+    setShowReset(false);
+    toast.success("Cat adoption reset");
+  }, []);
+
+  const resetMemoryBooth = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("memory_strips" as never).delete().eq("created_by", user.id);
+    }
+    setShowReset(false);
+    toast.success("Memory booth cleared");
+    setRefreshKey((k) => k + 1);
   }, []);
 
   const exitToWorld = useCallback(() => {
@@ -166,6 +186,15 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
         >
           {CHAMBER_NAMES[chamber]}
         </motion.p>
+
+        {chamber === "atrium" && (
+          <motion.button onClick={() => setShowReset(!showReset)}
+            className="text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            whileHover={{ rotate: 90 }} title="Settings">
+            <Settings size={14} />
+          </motion.button>
+        )}
       </div>
 
       {/* Chamber content with transitions */}
@@ -193,6 +222,44 @@ export function FamilyWorld({ onExit }: FamilyWorldProps) {
           onClose={() => setBoothOpen(false)}
         />
       )}
+
+      {/* Reset panel */}
+      <AnimatePresence>
+        {showReset && (
+          <motion.div className="fixed inset-0 z-[70] flex items-center justify-center p-6"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowReset(false)}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div className="relative z-10 rounded-2xl p-6 w-full max-w-sm"
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ background: "oklch(0.16 0.04 265 / 95%)", border: "1px solid oklch(0.30 0.04 265 / 30%)",
+                boxShadow: "0 20px 60px oklch(0 0 0 / 50%)" }}>
+              <p className="text-[10px] uppercase tracking-[0.3em] serif text-center mb-5" style={{ color: "oklch(0.55 0.06 265 / 50%)" }}>
+                Reset Data
+              </p>
+              <div className="space-y-3">
+                <button onClick={resetCat}
+                  className="w-full text-left rounded-xl px-4 py-3 transition-all group"
+                  style={{ background: "oklch(0.14 0.03 265 / 60%)", border: "1px solid oklch(0.25 0.04 265 / 20%)" }}>
+                  <p className="serif text-xs text-foreground/80 group-hover:text-foreground transition-colors">Reset Cat Adoption</p>
+                  <p className="text-[10px] text-muted-foreground/40 mt-0.5">Clear the cat name, re-adopt</p>
+                </button>
+                <button onClick={resetMemoryBooth}
+                  className="w-full text-left rounded-xl px-4 py-3 transition-all group"
+                  style={{ background: "oklch(0.14 0.03 265 / 60%)", border: "1px solid oklch(0.25 0.04 265 / 20%)" }}>
+                  <p className="serif text-xs text-foreground/80 group-hover:text-foreground transition-colors">Clear Memory Booth</p>
+                  <p className="text-[10px] text-muted-foreground/40 mt-0.5">Delete all photo strips</p>
+                </button>
+              </div>
+              <button onClick={() => setShowReset(false)}
+                className="mt-4 w-full text-center text-[10px] text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors serif">
+                close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

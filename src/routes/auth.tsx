@@ -38,12 +38,13 @@ function AuthPage() {
           password: AUTH_PASSWORD,
         });
         if (error) {
-          const { error: signUpError } = await supabase.auth.signUp({
+          // If sign-in fails, try to create the account first
+          await supabase.auth.signUp({
             email: AUTH_EMAIL,
             password: AUTH_PASSWORD,
             options: { data: { display_name: username } },
           });
-          if (signUpError) throw signUpError;
+          // Now sign in (whether signUp succeeded or user already existed)
           await supabase.auth.signInWithPassword({
             email: AUTH_EMAIL,
             password: AUTH_PASSWORD,
